@@ -1,0 +1,1426 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Next.js — Getting Started (Tổng hợp tiếng Việt)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,900&family=JetBrains+Mono:wght@400;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0a;
+    --bg-soft: #111111;
+    --surface: #161616;
+    --border: #262626;
+    --border-hi: #3a3a3a;
+    --text: #ededed;
+    --text-dim: #a1a1a1;
+    --text-dimmer: #6e6e6e;
+    --accent: #fafafa;
+    --accent-green: #4ade80;
+    --accent-amber: #fbbf24;
+    --accent-cyan: #67e8f9;
+    --code-bg: #0d0d0d;
+    --code-border: #222;
+    --shadow: 0 1px 0 rgba(255,255,255,0.04) inset;
+    --display: 'Fraunces', Georgia, serif;
+    --body: 'Inter', system-ui, sans-serif;
+    --mono: 'JetBrains Mono', 'SF Mono', Menlo, monospace;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; scroll-padding-top: 80px; }
+
+  body {
+    font-family: var(--body);
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.65;
+    font-size: 15.5px;
+    -webkit-font-smoothing: antialiased;
+    background-image:
+      radial-gradient(ellipse 80% 50% at 50% -20%, rgba(74, 222, 128, 0.08), transparent),
+      radial-gradient(ellipse 60% 40% at 10% 120%, rgba(103, 232, 249, 0.06), transparent);
+    background-attachment: fixed;
+  }
+
+  /* ========= HEADER ========= */
+  .topbar {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(10,10,10,0.85);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    border-bottom: 1px solid var(--border);
+  }
+  .topbar-inner {
+    max-width: 1280px; margin: 0 auto;
+    padding: 14px 24px;
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 24px;
+  }
+  .brand { display: flex; align-items: center; gap: 10px; }
+  .brand-mark {
+    width: 28px; height: 28px;
+    background: var(--accent); color: var(--bg);
+    display: grid; place-items: center;
+    font-family: var(--display); font-weight: 900; font-size: 18px;
+    border-radius: 6px;
+    font-style: italic;
+  }
+  .brand-text { display: flex; flex-direction: column; line-height: 1.1; }
+  .brand-text strong { font-family: var(--display); font-weight: 600; font-size: 16px; letter-spacing: -0.01em; }
+  .brand-text span { font-size: 11px; color: var(--text-dim); font-family: var(--mono); text-transform: uppercase; letter-spacing: 0.08em; }
+  .version-badge {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--accent-green);
+    border: 1px solid var(--border-hi);
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: rgba(74, 222, 128, 0.05);
+  }
+
+  /* ========= LAYOUT ========= */
+  .layout {
+    max-width: 1280px; margin: 0 auto;
+    display: grid;
+    grid-template-columns: 260px 1fr;
+    gap: 48px;
+    padding: 0 24px;
+  }
+  @media (max-width: 900px) {
+    .layout { grid-template-columns: 1fr; gap: 0; }
+    .sidebar { display: none; }
+  }
+
+  /* ========= SIDEBAR NAV ========= */
+  .sidebar {
+    position: sticky; top: 76px;
+    align-self: start;
+    height: calc(100vh - 76px);
+    overflow-y: auto;
+    padding: 32px 0;
+    border-right: 1px solid var(--border);
+    padding-right: 16px;
+  }
+  .sidebar::-webkit-scrollbar { width: 4px; }
+  .sidebar::-webkit-scrollbar-thumb { background: var(--border-hi); border-radius: 2px; }
+  .nav-title {
+    font-family: var(--mono);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--text-dimmer);
+    margin-bottom: 12px;
+    padding-left: 14px;
+  }
+  .sidebar ol { list-style: none; counter-reset: step; }
+  .sidebar li { counter-increment: step; }
+  .sidebar a {
+    display: block;
+    padding: 7px 14px;
+    font-size: 13.5px;
+    color: var(--text-dim);
+    text-decoration: none;
+    border-left: 2px solid transparent;
+    transition: all 0.15s ease;
+    position: relative;
+  }
+  .sidebar a::before {
+    content: counter(step, decimal-leading-zero);
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text-dimmer);
+    margin-right: 10px;
+  }
+  .sidebar a:hover { color: var(--text); border-left-color: var(--border-hi); }
+  .sidebar a.active { color: var(--accent-green); border-left-color: var(--accent-green); background: rgba(74,222,128,0.03); }
+
+  /* ========= MAIN ========= */
+  main { padding: 40px 0 120px; min-width: 0; }
+
+  /* ========= HERO ========= */
+  .hero {
+    padding: 60px 0 80px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 56px;
+  }
+  .hero-eyebrow {
+    font-family: var(--mono);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: var(--accent-green);
+    margin-bottom: 20px;
+  }
+  .hero h1 {
+    font-family: var(--display);
+    font-weight: 400;
+    font-size: clamp(42px, 6vw, 78px);
+    line-height: 0.98;
+    letter-spacing: -0.035em;
+    color: var(--accent);
+    margin-bottom: 24px;
+  }
+  .hero h1 em {
+    font-style: italic;
+    font-weight: 500;
+    color: var(--accent-green);
+  }
+  .hero .lede {
+    font-size: 18px;
+    color: var(--text-dim);
+    max-width: 620px;
+    line-height: 1.55;
+  }
+  .hero-meta {
+    display: flex; gap: 32px; margin-top: 40px;
+    padding-top: 28px;
+    border-top: 1px solid var(--border);
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-dimmer);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  .hero-meta span strong { color: var(--text); display: block; margin-top: 4px; font-family: var(--body); font-size: 13px; text-transform: none; letter-spacing: normal; font-weight: 500; }
+
+  /* ========= SECTIONS ========= */
+  section.chapter {
+    scroll-margin-top: 80px;
+    padding: 48px 0 64px;
+    border-bottom: 1px dashed var(--border);
+  }
+  section.chapter:last-of-type { border-bottom: none; }
+  .chapter-num {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-dimmer);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-bottom: 14px;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .chapter-num::after {
+    content: ''; flex: 1; height: 1px; background: var(--border);
+  }
+  h2 {
+    font-family: var(--display);
+    font-weight: 500;
+    font-size: clamp(32px, 4vw, 46px);
+    line-height: 1.05;
+    letter-spacing: -0.025em;
+    color: var(--accent);
+    margin-bottom: 20px;
+  }
+  h2 em { font-style: italic; color: var(--accent-cyan); font-weight: 400; }
+  h3 {
+    font-family: var(--display);
+    font-weight: 600;
+    font-size: 22px;
+    letter-spacing: -0.01em;
+    margin-top: 40px;
+    margin-bottom: 14px;
+    color: var(--accent);
+  }
+  h4 {
+    font-weight: 600;
+    font-size: 15px;
+    margin-top: 24px;
+    margin-bottom: 10px;
+    color: var(--text);
+  }
+  p { margin-bottom: 16px; color: var(--text-dim); max-width: 720px; }
+  p strong, li strong { color: var(--text); font-weight: 600; }
+  a { color: var(--accent-cyan); text-decoration: none; border-bottom: 1px dotted var(--accent-cyan); }
+  a:hover { color: var(--accent-green); border-bottom-color: var(--accent-green); }
+
+  ul, ol { margin: 0 0 18px 0; padding-left: 0; list-style: none; max-width: 720px; }
+  ul li, ol li {
+    padding: 5px 0 5px 22px;
+    position: relative;
+    color: var(--text-dim);
+  }
+  ul li::before {
+    content: '→';
+    position: absolute;
+    left: 0; top: 5px;
+    color: var(--accent-green);
+    font-family: var(--mono);
+  }
+  ol { counter-reset: olc; }
+  ol li { counter-increment: olc; }
+  ol li::before {
+    content: counter(olc) '.';
+    position: absolute;
+    left: 0; top: 5px;
+    color: var(--accent-green);
+    font-family: var(--mono);
+    font-weight: 600;
+  }
+
+  /* ========= CODE ========= */
+  code {
+    font-family: var(--mono);
+    font-size: 0.88em;
+    background: var(--code-bg);
+    border: 1px solid var(--code-border);
+    padding: 1px 6px;
+    border-radius: 4px;
+    color: var(--accent-amber);
+  }
+  pre {
+    background: var(--code-bg);
+    border: 1px solid var(--code-border);
+    border-radius: 8px;
+    padding: 18px 20px;
+    overflow-x: auto;
+    margin: 18px 0 24px;
+    font-size: 13px;
+    line-height: 1.6;
+    position: relative;
+    max-width: 100%;
+  }
+  pre::before {
+    content: attr(data-lang);
+    position: absolute;
+    top: 0; right: 0;
+    font-family: var(--mono);
+    font-size: 10px;
+    padding: 6px 12px;
+    color: var(--text-dimmer);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    border-left: 1px solid var(--code-border);
+    border-bottom: 1px solid var(--code-border);
+    border-radius: 0 8px 0 8px;
+  }
+  pre code {
+    background: none; border: none; padding: 0;
+    color: var(--text);
+    font-size: inherit;
+  }
+  /* Syntax highlight classes */
+  .kw { color: #f472b6; } /* keywords */
+  .str { color: var(--accent-green); } /* strings */
+  .com { color: var(--text-dimmer); font-style: italic; } /* comments */
+  .fn { color: var(--accent-cyan); } /* functions */
+  .num { color: var(--accent-amber); }
+  .tag { color: #fda4af; }
+  .prop { color: #93c5fd; }
+
+  /* ========= CALLOUT ========= */
+  .callout {
+    margin: 24px 0;
+    padding: 16px 20px;
+    border-left: 3px solid var(--accent-amber);
+    background: rgba(251, 191, 36, 0.04);
+    border-radius: 0 6px 6px 0;
+  }
+  .callout.tip { border-left-color: var(--accent-green); background: rgba(74, 222, 128, 0.04); }
+  .callout.warn { border-left-color: #f97316; background: rgba(249, 115, 22, 0.04); }
+  .callout-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--accent-amber);
+    margin-bottom: 6px;
+    font-weight: 600;
+  }
+  .callout.tip .callout-label { color: var(--accent-green); }
+  .callout.warn .callout-label { color: #f97316; }
+  .callout p { margin-bottom: 0; color: var(--text); font-size: 14px; }
+
+  /* ========= TABLE ========= */
+  .table-wrap { overflow-x: auto; margin: 20px 0; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    overflow: hidden;
+  }
+  th, td {
+    padding: 12px 16px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+    color: var(--text-dim);
+  }
+  th {
+    background: var(--surface);
+    font-weight: 600;
+    color: var(--text);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-family: var(--mono);
+  }
+  tr:last-child td { border-bottom: none; }
+
+  /* ========= FOOTER ========= */
+  footer {
+    max-width: 1280px; margin: 0 auto;
+    padding: 40px 24px 60px;
+    border-top: 1px solid var(--border);
+    color: var(--text-dimmer);
+    font-size: 13px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+  footer .sig { font-family: var(--display); font-style: italic; }
+
+  /* ========= MISC ========= */
+  .key-concept {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--accent-cyan);
+    background: rgba(103, 232, 249, 0.07);
+    border: 1px solid rgba(103, 232, 249, 0.2);
+    padding: 2px 8px;
+    border-radius: 4px;
+    margin-right: 6px;
+    margin-bottom: 6px;
+  }
+  .file-tree {
+    font-family: var(--mono);
+    font-size: 13px;
+    background: var(--code-bg);
+    border: 1px solid var(--code-border);
+    border-radius: 8px;
+    padding: 18px 22px;
+    color: var(--text-dim);
+    line-height: 1.9;
+    margin: 20px 0;
+  }
+  .file-tree .dir { color: var(--accent-cyan); }
+  .file-tree .file { color: var(--text); }
+  .file-tree .comment { color: var(--text-dimmer); margin-left: 12px; }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">
+      <div class="brand-mark">N</div>
+      <div class="brand-text">
+        <strong>Next.js Docs</strong>
+        <span>Getting Started · Tiếng Việt</span>
+      </div>
+    </div>
+    <div class="version-badge">v16.2.4 · App Router</div>
+  </div>
+</header>
+
+<div class="layout">
+
+  <aside class="sidebar">
+    <div class="nav-title">Mục lục</div>
+    <ol>
+      <li><a href="#installation">Cài đặt</a></li>
+      <li><a href="#project-structure">Cấu trúc dự án</a></li>
+      <li><a href="#layouts-and-pages">Layouts &amp; Pages</a></li>
+      <li><a href="#linking-navigating">Linking &amp; Navigating</a></li>
+      <li><a href="#images">Images</a></li>
+      <li><a href="#fonts">Fonts</a></li>
+      <li><a href="#css">CSS</a></li>
+      <li><a href="#server-client">Server &amp; Client Components</a></li>
+      <li><a href="#fetching-data">Fetching Data</a></li>
+      <li><a href="#caching">Caching &amp; Revalidating</a></li>
+      <li><a href="#updating-data">Updating Data</a></li>
+      <li><a href="#error-handling">Error Handling</a></li>
+      <li><a href="#partial-prerendering">Partial Prerendering</a></li>
+      <li><a href="#metadata">Metadata &amp; OG Images</a></li>
+      <li><a href="#deploying">Deploying</a></li>
+      <li><a href="#upgrading">Upgrading</a></li>
+    </ol>
+  </aside>
+
+  <main>
+
+    <!-- HERO -->
+    <div class="hero">
+      <div class="hero-eyebrow">The React Framework for the Web</div>
+      <h1>Next.js <em>Getting Started</em></h1>
+      <p class="lede">
+        Tổng hợp đầy đủ tiếng Việt toàn bộ phần Getting Started của tài liệu Next.js chính thức — từ cài đặt, cấu trúc dự án, routing, data fetching, đến deploy và nâng cấp. Cập nhật cho Next.js 16 với App Router.
+      </p>
+      <div class="hero-meta">
+        <span>Phiên bản<strong>16.2.4</strong></span>
+        <span>Cập nhật<strong>15 / 04 / 2026</strong></span>
+        <span>Router<strong>App Router (React 19)</strong></span>
+        <span>Nguồn<strong>nextjs.org/docs</strong></span>
+      </div>
+    </div>
+
+    <!-- 01. INSTALLATION -->
+    <section class="chapter" id="installation">
+      <div class="chapter-num">Chương 01</div>
+      <h2>Cài đặt</h2>
+      <p>Next.js là một React framework cho phép xây dựng ứng dụng web full-stack. Bạn viết giao diện bằng React Components, còn Next.js lo phần tối ưu, bundler, compiler, và các tính năng như routing, data fetching, caching.</p>
+
+      <h3>Quick start</h3>
+      <p>Cách nhanh nhất để tạo app mới là dùng CLI <code>create-next-app</code>:</p>
+      <pre data-lang="bash"><code><span class="com"># pnpm (khuyến nghị)</span>
+pnpm create next-app@latest my-app --yes
+<span class="kw">cd</span> my-app
+pnpm dev
+
+<span class="com"># npm</span>
+npx create-next-app@latest my-app --yes
+<span class="kw">cd</span> my-app
+npm run dev</code></pre>
+
+      <p>Cờ <code>--yes</code> bỏ qua các câu hỏi và dùng cấu hình mặc định: TypeScript, Tailwind CSS, ESLint, App Router, Turbopack, với import alias <code>@/*</code>, và kèm file <code>AGENTS.md</code> (cùng <code>CLAUDE.md</code>) để hướng dẫn các coding agent viết code Next.js cập nhật.</p>
+
+      <h3>Yêu cầu hệ thống</h3>
+      <ul>
+        <li><strong>Node.js:</strong> tối thiểu 20.9</li>
+        <li><strong>OS:</strong> macOS, Windows (gồm WSL), Linux</li>
+        <li><strong>Trình duyệt hỗ trợ:</strong> Chrome 111+, Edge 111+, Firefox 111+, Safari 16.4+</li>
+      </ul>
+
+      <h3>Cài đặt thủ công</h3>
+      <pre data-lang="bash"><code>pnpm i next@latest react@latest react-dom@latest</code></pre>
+
+      <p>Thêm scripts vào <code>package.json</code>:</p>
+      <pre data-lang="json"><code>{
+  <span class="prop">"scripts"</span>: {
+    <span class="prop">"dev"</span>: <span class="str">"next dev"</span>,
+    <span class="prop">"build"</span>: <span class="str">"next build"</span>,
+    <span class="prop">"start"</span>: <span class="str">"next start"</span>,
+    <span class="prop">"lint"</span>: <span class="str">"eslint"</span>,
+    <span class="prop">"lint:fix"</span>: <span class="str">"eslint --fix"</span>
+  }
+}</code></pre>
+
+      <div class="callout tip">
+        <div class="callout-label">Lưu ý</div>
+        <p>Turbopack là bundler mặc định từ Next.js 16. Nếu muốn dùng Webpack, chạy <code>next dev --webpack</code> hoặc <code>next build --webpack</code>.</p>
+      </div>
+
+      <h3>Tạo thư mục <code>app</code></h3>
+      <p>Next.js dùng <strong>file-system routing</strong> — routes được xác định bởi cấu trúc file/folder. Tạo thư mục <code>app</code> với <code>layout.tsx</code> (bắt buộc, phải chứa <code>&lt;html&gt;</code> và <code>&lt;body&gt;</code>):</p>
+
+      <pre data-lang="tsx"><code><span class="com">// app/layout.tsx</span>
+<span class="kw">export default function</span> <span class="fn">RootLayout</span>({
+  children,
+}: {
+  children: React.ReactNode
+}) {
+  <span class="kw">return</span> (
+    <span class="tag">&lt;html</span> <span class="prop">lang</span>=<span class="str">"en"</span><span class="tag">&gt;</span>
+      <span class="tag">&lt;body&gt;</span>{children}<span class="tag">&lt;/body&gt;</span>
+    <span class="tag">&lt;/html&gt;</span>
+  )
+}</code></pre>
+
+      <pre data-lang="tsx"><code><span class="com">// app/page.tsx</span>
+<span class="kw">export default function</span> <span class="fn">Page</span>() {
+  <span class="kw">return</span> <span class="tag">&lt;h1&gt;</span>Hello, Next.js!<span class="tag">&lt;/h1&gt;</span>
+}</code></pre>
+
+      <h3>TypeScript, ESLint &amp; Path Aliases</h3>
+      <p>Next.js hỗ trợ TypeScript sẵn. Đổi đuôi file thành <code>.tsx</code> và chạy <code>next dev</code> — Next.js sẽ tự cài dependencies và tạo <code>tsconfig.json</code>. Về linter, bạn có thể dùng ESLint hoặc Biome. Cấu hình path aliases trong <code>tsconfig.json</code>:</p>
+
+      <pre data-lang="json"><code>{
+  <span class="prop">"compilerOptions"</span>: {
+    <span class="prop">"baseUrl"</span>: <span class="str">"src/"</span>,
+    <span class="prop">"paths"</span>: {
+      <span class="prop">"@/components/*"</span>: [<span class="str">"components/*"</span>]
+    }
+  }
+}</code></pre>
+
+      <div class="callout warn">
+        <div class="callout-label">Thay đổi</div>
+        <p>Từ Next.js 16, <code>next build</code> không tự chạy linter nữa. Hãy chạy linter qua NPM scripts.</p>
+      </div>
+    </section>
+
+    <!-- 02. PROJECT STRUCTURE -->
+    <section class="chapter" id="project-structure">
+      <div class="chapter-num">Chương 02</div>
+      <h2>Cấu trúc dự án</h2>
+      <p>Next.js không ép buộc cách tổ chức code, nhưng có một số quy ước đặc biệt. Trong thư mục <code>app</code>, folder lồng nhau sẽ định nghĩa cấu trúc routes. <strong>Route chỉ public khi có file <code>page.js</code> hoặc <code>route.js</code></strong> — nghĩa là bạn có thể colocate các file hỗ trợ (components, utils, styles) ngay trong route segment mà không sợ bị route.</p>
+
+      <h3>Top-level folders</h3>
+      <div class="file-tree">
+<span class="dir">app/</span>          <span class="comment"># App Router — routes, layouts, pages</span>
+<span class="dir">pages/</span>        <span class="comment"># Pages Router (tùy chọn, tương thích ngược)</span>
+<span class="dir">public/</span>       <span class="comment"># Static assets (ảnh, font, favicon...)</span>
+<span class="dir">src/</span>          <span class="comment"># Tùy chọn — tách code khỏi config</span>
+      </div>
+
+      <h3>Các file đặc biệt trong <code>app/</code></h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>File</th><th>Vai trò</th></tr></thead>
+          <tbody>
+            <tr><td><code>layout.js</code></td><td>UI chia sẻ giữa nhiều page — giữ state khi navigate</td></tr>
+            <tr><td><code>page.js</code></td><td>UI riêng cho 1 route — mở route ra public</td></tr>
+            <tr><td><code>loading.js</code></td><td>UI loading khi Suspense đang chờ</td></tr>
+            <tr><td><code>error.js</code></td><td>Error boundary cho route segment</td></tr>
+            <tr><td><code>not-found.js</code></td><td>UI cho 404</td></tr>
+            <tr><td><code>route.js</code></td><td>API endpoint (Route Handler)</td></tr>
+            <tr><td><code>template.js</code></td><td>Giống layout nhưng tạo instance mới mỗi lần navigate</td></tr>
+            <tr><td><code>default.js</code></td><td>Fallback cho parallel routes</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Quy ước đặt tên folder</h3>
+      <div style="display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0 20px;">
+        <span class="key-concept">[folder]</span>
+        <span class="key-concept">[...folder]</span>
+        <span class="key-concept">[[...folder]]</span>
+        <span class="key-concept">(folder)</span>
+        <span class="key-concept">_folder</span>
+        <span class="key-concept">@folder</span>
+      </div>
+      <ul>
+        <li><code>[slug]</code> — Dynamic segment (1 tham số)</li>
+        <li><code>[...slug]</code> — Catch-all (nhiều tham số)</li>
+        <li><code>[[...slug]]</code> — Optional catch-all</li>
+        <li><code>(marketing)</code> — Route group, tổ chức routes mà không ảnh hưởng URL</li>
+        <li><code>_components</code> — Private folder, không được route</li>
+        <li><code>@analytics</code> — Named slot cho parallel routes</li>
+      </ul>
+
+      <div class="callout tip">
+        <div class="callout-label">Mẹo tổ chức</div>
+        <p>Lưu code dùng chung ở root <code>app/</code>, và code chuyên biệt trong chính route segment sử dụng nó. Dùng route groups <code>(auth)</code>, <code>(dashboard)</code> để áp layout khác nhau cho các nhóm route.</p>
+      </div>
+    </section>
+
+    <!-- 03. LAYOUTS AND PAGES -->
+    <section class="chapter" id="layouts-and-pages">
+      <div class="chapter-num">Chương 03</div>
+      <h2>Layouts <em>&amp;</em> Pages</h2>
+      <p>Một <strong>page</strong> là UI render tại một route cụ thể. Một <strong>layout</strong> là UI chia sẻ giữa nhiều page — khi navigate, layout vẫn giữ state và không re-render.</p>
+
+      <h3>Tạo page</h3>
+      <pre data-lang="tsx"><code><span class="com">// app/page.tsx — route "/"</span>
+<span class="kw">export default function</span> <span class="fn">Page</span>() {
+  <span class="kw">return</span> <span class="tag">&lt;h1&gt;</span>Hello, Home page!<span class="tag">&lt;/h1&gt;</span>
+}</code></pre>
+
+      <h3>Tạo layout</h3>
+      <pre data-lang="tsx"><code><span class="com">// app/dashboard/layout.tsx</span>
+<span class="kw">export default function</span> <span class="fn">DashboardLayout</span>({
+  children,
+}: {
+  children: React.ReactNode
+}) {
+  <span class="kw">return</span> (
+    <span class="tag">&lt;section&gt;</span>
+      <span class="tag">&lt;nav&gt;</span>Dashboard Nav<span class="tag">&lt;/nav&gt;</span>
+      <span class="tag">&lt;main&gt;</span>{children}<span class="tag">&lt;/main&gt;</span>
+    <span class="tag">&lt;/section&gt;</span>
+  )
+}</code></pre>
+
+      <h3>Nested routes</h3>
+      <p>Lồng folder để tạo nested routes. Ví dụ cho <code>/blog/my-post</code>:</p>
+      <div class="file-tree">
+<span class="dir">app/</span>
+  <span class="dir">blog/</span>
+    <span class="file">page.tsx</span>           <span class="comment"># /blog</span>
+    <span class="dir">[slug]/</span>
+      <span class="file">page.tsx</span>         <span class="comment"># /blog/:slug</span>
+      </div>
+
+      <h3>Dynamic Segments</h3>
+      <pre data-lang="tsx"><code><span class="com">// app/blog/[slug]/page.tsx</span>
+<span class="kw">export default async function</span> <span class="fn">BlogPostPage</span>({
+  params,
+}: {
+  params: Promise&lt;{ slug: <span class="kw">string</span> }&gt;
+}) {
+  <span class="kw">const</span> { slug } = <span class="kw">await</span> params
+  <span class="kw">const</span> post = <span class="kw">await</span> <span class="fn">getPost</span>(slug)
+  <span class="kw">return</span> <span class="tag">&lt;h1&gt;</span>{post.title}<span class="tag">&lt;/h1&gt;</span>
+}</code></pre>
+
+      <div class="callout">
+        <div class="callout-label">Quan trọng — Next.js 15+</div>
+        <p><code>params</code> và <code>searchParams</code> là <strong>Promise</strong> — phải <code>await</code> trước khi dùng. Đây là thay đổi lớn so với Next.js 14.</p>
+      </div>
+
+      <h3>searchParams</h3>
+      <pre data-lang="tsx"><code><span class="kw">export default async function</span> <span class="fn">Page</span>({
+  searchParams,
+}: {
+  searchParams: Promise&lt;{ [key: <span class="kw">string</span>]: <span class="kw">string</span> | <span class="kw">string</span>[] | <span class="kw">undefined</span> }&gt;
+}) {
+  <span class="kw">const</span> filters = (<span class="kw">await</span> searchParams).filters
+}</code></pre>
+      <p>Dùng <code>searchParams</code> sẽ opt page vào <strong>dynamic rendering</strong> vì cần request thực tế để đọc tham số.</p>
+    </section>
+
+    <!-- 04. LINKING AND NAVIGATING -->
+    <section class="chapter" id="linking-navigating">
+      <div class="chapter-num">Chương 04</div>
+      <h2>Linking <em>&amp;</em> Navigating</h2>
+      <p>Next.js có 4 cơ chế tối ưu điều hướng: <strong>Prefetching</strong>, <strong>Prerendering</strong>, <strong>Streaming</strong>, và <strong>Client-side transitions</strong>.</p>
+
+      <h3><code>&lt;Link&gt;</code> component</h3>
+      <pre data-lang="tsx"><code><span class="kw">import</span> Link <span class="kw">from</span> <span class="str">'next/link'</span>
+
+<span class="kw">export default function</span> <span class="fn">Nav</span>() {
+  <span class="kw">return</span> (
+    <span class="tag">&lt;nav&gt;</span>
+      <span class="tag">&lt;Link</span> <span class="prop">href</span>=<span class="str">"/"</span><span class="tag">&gt;</span>Home<span class="tag">&lt;/Link&gt;</span>
+      <span class="tag">&lt;Link</span> <span class="prop">href</span>=<span class="str">"/blog"</span><span class="tag">&gt;</span>Blog<span class="tag">&lt;/Link&gt;</span>
+    <span class="tag">&lt;/nav&gt;</span>
+  )
+}</code></pre>
+
+      <h3>Prefetching</h3>
+      <p>Next.js tự động prefetch các route linked bằng <code>&lt;Link&gt;</code> khi chúng vào viewport. Kết quả: khi user click, dữ liệu đã sẵn sàng client-side → chuyển trang <em>ngay lập tức</em>.</p>
+      <ul>
+        <li><strong>Static route:</strong> prefetch toàn bộ route</li>
+        <li><strong>Dynamic route:</strong> skip prefetch, hoặc prefetch 1 phần nếu có <code>loading.tsx</code></li>
+      </ul>
+
+      <h3>Hover-based prefetching</h3>
+      <p>Để giảm bandwidth, bạn có thể chỉ prefetch khi user hover:</p>
+      <pre data-lang="tsx"><code><span class="str">'use client'</span>
+<span class="kw">import</span> Link <span class="kw">from</span> <span class="str">'next/link'</span>
+<span class="kw">import</span> { useState } <span class="kw">from</span> <span class="str">'react'</span>
+
+<span class="kw">function</span> <span class="fn">HoverPrefetchLink</span>({ href, children }) {
+  <span class="kw">const</span> [active, setActive] = <span class="fn">useState</span>(<span class="kw">false</span>)
+  <span class="kw">return</span> (
+    <span class="tag">&lt;Link</span>
+      <span class="prop">href</span>={href}
+      <span class="prop">prefetch</span>={active ? <span class="kw">null</span> : <span class="kw">false</span>}
+      <span class="prop">onMouseEnter</span>={() =&gt; <span class="fn">setActive</span>(<span class="kw">true</span>)}
+    <span class="tag">&gt;</span>
+      {children}
+    <span class="tag">&lt;/Link&gt;</span>
+  )
+}</code></pre>
+
+      <h3>Streaming với <code>loading.tsx</code></h3>
+      <p>Để cải thiện UX cho dynamic routes, tạo <code>loading.tsx</code> trong route folder. Nó cho phép partial prefetching, trigger navigation ngay, và hiển thị UI loading.</p>
+
+      <h3>Programmatic navigation</h3>
+      <pre data-lang="tsx"><code><span class="str">'use client'</span>
+<span class="kw">import</span> { useRouter } <span class="kw">from</span> <span class="str">'next/navigation'</span>
+
+<span class="kw">export default function</span> <span class="fn">Component</span>() {
+  <span class="kw">const</span> router = <span class="fn">useRouter</span>()
+  <span class="kw">return</span> <span class="tag">&lt;button</span> <span class="prop">onClick</span>={() =&gt; router.<span class="fn">push</span>(<span class="str">'/dashboard'</span>)}<span class="tag">&gt;</span>Go<span class="tag">&lt;/button&gt;</span>
+}</code></pre>
+    </section>
+
+    <!-- 05. IMAGES -->
+    <section class="chapter" id="images">
+      <div class="chapter-num">Chương 05</div>
+      <h2>Images</h2>
+      <p>Component <code>&lt;Image&gt;</code> của Next.js mở rộng <code>&lt;img&gt;</code> với các tính năng: size optimization (WebP/AVIF), visual stability (chống layout shift), lazy loading, và on-demand resizing kể cả với ảnh remote.</p>
+
+      <h3>Sử dụng cơ bản</h3>
+      <pre data-lang="tsx"><code><span class="kw">import</span> Image <span class="kw">from</span> <span class="str">'next/image'</span>
+
+<span class="kw">export default function</span> <span class="fn">Page</span>() {
+  <span class="kw">return</span> (
+    <span class="tag">&lt;Image</span>
+      <span class="prop">src</span>=<span class="str">"/profile.png"</span>
+      <span class="prop">alt</span>=<span class="str">"Picture of the author"</span>
+      <span class="prop">width</span>={<span class="num">500</span>}
+      <span class="prop">height</span>={<span class="num">500</span>}
+    <span class="tag">/&gt;</span>
+  )
+}</code></pre>
+
+      <p>Ảnh trong <code>public/</code> được reference qua base URL <code>/</code>. Nếu import static, Next.js tự xác định <code>width</code> và <code>height</code> để tránh Cumulative Layout Shift.</p>
+
+      <h3>Remote images</h3>
+      <p>Với ảnh từ URL bên ngoài, cần khai báo <code>remotePatterns</code> trong <code>next.config.ts</code> để tránh abuse:</p>
+      <pre data-lang="ts"><code><span class="kw">import</span> { NextConfig } <span class="kw">from</span> <span class="str">'next'</span>
+
+<span class="kw">const</span> config: NextConfig = {
+  images: {
+    remotePatterns: [
+      {
+        protocol: <span class="str">'https'</span>,
+        hostname: <span class="str">'s3.amazonaws.com'</span>,
+        pathname: <span class="str">'/my-bucket/**'</span>,
+      },
+    ],
+  },
+}
+<span class="kw">export default</span> config</code></pre>
+    </section>
+
+    <!-- 06. FONTS -->
+    <section class="chapter" id="fonts">
+      <div class="chapter-num">Chương 06</div>
+      <h2>Fonts</h2>
+      <p>Module <code>next/font</code> tự động tối ưu fonts, loại bỏ network requests ra bên ngoài (tự host), và chống layout shift. Hỗ trợ cả Google Fonts và local fonts.</p>
+
+      <h3>Google Fonts</h3>
+      <pre data-lang="tsx"><code><span class="kw">import</span> { Geist } <span class="kw">from</span> <span class="str">'next/font/google'</span>
+
+<span class="kw">const</span> geist = <span class="fn">Geist</span>({ subsets: [<span class="str">'latin'</span>] })
+
+<span class="kw">export default function</span> <span class="fn">Layout</span>({ children }) {
+  <span class="kw">return</span> (
+    <span class="tag">&lt;html</span> <span class="prop">lang</span>=<span class="str">"en"</span> <span class="prop">className</span>={geist.className}<span class="tag">&gt;</span>
+      <span class="tag">&lt;body&gt;</span>{children}<span class="tag">&lt;/body&gt;</span>
+    <span class="tag">&lt;/html&gt;</span>
+  )
+}</code></pre>
+
+      <div class="callout tip">
+        <div class="callout-label">Khuyến nghị</div>
+        <p>Dùng <strong>variable fonts</strong> cho hiệu năng tốt nhất. Nếu không, phải chỉ định <code>weight</code> cụ thể.</p>
+      </div>
+
+      <h3>Local fonts</h3>
+      <pre data-lang="tsx"><code><span class="kw">import</span> localFont <span class="kw">from</span> <span class="str">'next/font/local'</span>
+
+<span class="kw">const</span> myFont = <span class="fn">localFont</span>({
+  src: [
+    { path: <span class="str">'./Roboto-Regular.woff2'</span>, weight: <span class="str">'400'</span>, style: <span class="str">'normal'</span> },
+    { path: <span class="str">'./Roboto-Bold.woff2'</span>, weight: <span class="str">'700'</span>, style: <span class="str">'normal'</span> },
+  ],
+})</code></pre>
+
+      <h3>Dùng nhiều font — CSS variables</h3>
+      <pre data-lang="tsx"><code><span class="kw">const</span> inter = <span class="fn">Inter</span>({ variable: <span class="str">'--font-inter'</span>, subsets: [<span class="str">'latin'</span>] })
+<span class="kw">const</span> roboto_mono = <span class="fn">Roboto_Mono</span>({ variable: <span class="str">'--font-roboto-mono'</span>, subsets: [<span class="str">'latin'</span>] })
+
+<span class="com">// Dùng: className={`${inter.variable} ${roboto_mono.variable}`}</span></code></pre>
+    </section>
+
+    <!-- 07. CSS -->
+    <section class="chapter" id="css">
+      <div class="chapter-num">Chương 07</div>
+      <h2>CSS</h2>
+      <p>Next.js hỗ trợ nhiều cách styling: <strong>Tailwind CSS</strong> (mặc định), <strong>CSS Modules</strong>, <strong>Global CSS</strong>, <strong>Sass</strong>, <strong>CSS-in-JS</strong>.</p>
+
+      <h3>Tailwind CSS</h3>
+      <pre data-lang="tsx"><code><span class="kw">export default function</span> <span class="fn">Page</span>() {
+  <span class="kw">return</span> (
+    <span class="tag">&lt;main</span> <span class="prop">className</span>=<span class="str">"flex min-h-screen flex-col items-center justify-between p-24"</span><span class="tag">&gt;</span>
+      <span class="tag">&lt;h1</span> <span class="prop">className</span>=<span class="str">"text-4xl font-bold"</span><span class="tag">&gt;</span>Welcome to Next.js!<span class="tag">&lt;/h1&gt;</span>
+    <span class="tag">&lt;/main&gt;</span>
+  )
+}</code></pre>
+
+      <h3>CSS Modules</h3>
+      <p>CSS Modules scope tên class tự động, tránh xung đột. Dùng extension <code>.module.css</code>:</p>
+      <pre data-lang="tsx"><code><span class="kw">import</span> styles <span class="kw">from</span> <span class="str">'./blog.module.css'</span>
+
+<span class="kw">export default function</span> <span class="fn">Page</span>() {
+  <span class="kw">return</span> <span class="tag">&lt;main</span> <span class="prop">className</span>={styles.blog}<span class="tag">&gt;&lt;/main&gt;</span>
+}</code></pre>
+
+      <h3>Global CSS</h3>
+      <p>Import global stylesheet trong root layout. Ordering CSS theo thứ tự import. Ví dụ với Bootstrap:</p>
+      <pre data-lang="tsx"><code><span class="kw">import</span> <span class="str">'bootstrap/dist/css/bootstrap.css'</span>
+
+<span class="kw">export default function</span> <span class="fn">RootLayout</span>({ children }) {
+  <span class="kw">return</span> (
+    <span class="tag">&lt;html&gt;</span>
+      <span class="tag">&lt;body</span> <span class="prop">className</span>=<span class="str">"container"</span><span class="tag">&gt;</span>{children}<span class="tag">&lt;/body&gt;</span>
+    <span class="tag">&lt;/html&gt;</span>
+  )
+}</code></pre>
+
+      <div class="callout">
+        <div class="callout-label">Production build</div>
+        <p>Trong <code>next build</code>, toàn bộ CSS được concat thành nhiều file minified + code-split để chỉ load CSS cần thiết cho từng route. Luôn kiểm tra build thực tế để verify thứ tự CSS.</p>
+      </div>
+    </section>
+
+    <!-- 08. SERVER & CLIENT COMPONENTS -->
+    <section class="chapter" id="server-client">
+      <div class="chapter-num">Chương 08</div>
+      <h2>Server <em>&amp;</em> Client Components</h2>
+      <p>Mặc định, layouts và pages là <strong>Server Components</strong> — render trên server, có thể fetch data trực tiếp, và stream về client. Khi cần tương tác hoặc browser APIs, chuyển sang <strong>Client Components</strong>.</p>
+
+      <h3>Khi nào dùng Client Components?</h3>
+      <ul>
+        <li>State &amp; event handlers (<code>onClick</code>, <code>onChange</code>)</li>
+        <li>Lifecycle logic (<code>useEffect</code>)</li>
+        <li>Browser-only APIs (<code>localStorage</code>, <code>window</code>, Geolocation...)</li>
+        <li>Custom hooks</li>
+      </ul>
+
+      <h3>Khi nào dùng Server Components?</h3>
+      <ul>
+        <li>Fetch data từ DB/API gần nguồn dữ liệu</li>
+        <li>Dùng API keys, tokens, secrets mà không expose ra client</li>
+        <li>Giảm JavaScript gửi xuống browser</li>
+        <li>Cải thiện First Contentful Paint (FCP), stream UI progressive</li>
+      </ul>
+
+      <h3>Directive <code>'use client'</code></h3>
+      <pre data-lang="tsx"><code><span class="str">'use client'</span>
+<span class="kw">import</span> { useState } <span class="kw">from</span> <span class="str">'react'</span>
+
+<span class="kw">export default function</span> <span class="fn">LikeButton</span>({ likes }: { likes: <span class="kw">number</span> }) {
+  <span class="kw">const</span> [count, setCount] = <span class="fn">useState</span>(likes)
+  <span class="kw">return</span> <span class="tag">&lt;button</span> <span class="prop">onClick</span>={() =&gt; <span class="fn">setCount</span>(count + <span class="num">1</span>)}<span class="tag">&gt;</span>{count}<span class="tag">&lt;/button&gt;</span>
+}</code></pre>
+
+      <h3>Composition pattern</h3>
+      <p>Server Component fetch data → truyền xuống Client Component làm prop:</p>
+      <pre data-lang="tsx"><code><span class="com">// Server Component</span>
+<span class="kw">import</span> LikeButton <span class="kw">from</span> <span class="str">'@/app/ui/like-button'</span>
+<span class="kw">import</span> { getPost } <span class="kw">from</span> <span class="str">'@/lib/data'</span>
+
+<span class="kw">export default async function</span> <span class="fn">Page</span>({ params }) {
+  <span class="kw">const</span> { id } = <span class="kw">await</span> params
+  <span class="kw">const</span> post = <span class="kw">await</span> <span class="fn">getPost</span>(id)
+  <span class="kw">return</span> (
+    <span class="tag">&lt;main&gt;</span>
+      <span class="tag">&lt;h1&gt;</span>{post.title}<span class="tag">&lt;/h1&gt;</span>
+      <span class="tag">&lt;LikeButton</span> <span class="prop">likes</span>={post.likes} <span class="tag">/&gt;</span>
+    <span class="tag">&lt;/main&gt;</span>
+  )
+}</code></pre>
+
+      <h3>Server Components → Client Components as children</h3>
+      <p>Pattern phổ biến: dùng <code>children</code> để nest Server Component bên trong Client Component:</p>
+      <pre data-lang="tsx"><code><span class="com">// Modal là Client Component</span>
+<span class="str">'use client'</span>
+<span class="kw">export default function</span> <span class="fn">Modal</span>({ children }) {
+  <span class="kw">return</span> <span class="tag">&lt;div&gt;</span>{children}<span class="tag">&lt;/div&gt;</span>
+}
+
+<span class="com">// Page (Server) truyền Cart (Server) vào Modal (Client)</span>
+<span class="kw">export default function</span> <span class="fn">Page</span>() {
+  <span class="kw">return</span> <span class="tag">&lt;Modal&gt;&lt;Cart</span> <span class="tag">/&gt;&lt;/Modal&gt;</span>
+}</code></pre>
+
+      <div class="callout">
+        <div class="callout-label">RSC Payload</div>
+        <p>Server Components render thành một format đặc biệt gọi là <strong>RSC Payload</strong> — biểu diễn nhị phân compact của React tree. Browser dùng nó kết hợp với HTML để hydrate Client Components.</p>
+      </div>
+    </section>
+
+    <!-- 09. FETCHING DATA -->
+    <section class="chapter" id="fetching-data">
+      <div class="chapter-num">Chương 09</div>
+      <h2>Fetching Data</h2>
+      <p>Trong Server Components, bạn có thể fetch dữ liệu bằng bất kỳ async I/O nào: <code>fetch</code>, ORM, database client, filesystem...</p>
+
+      <h3>Fetch API</h3>
+      <pre data-lang="tsx"><code><span class="kw">export default async function</span> <span class="fn">Page</span>() {
+  <span class="kw">const</span> data = <span class="kw">await</span> <span class="fn">fetch</span>(<span class="str">'https://api.vercel.app/blog'</span>)
+  <span class="kw">const</span> posts = <span class="kw">await</span> data.<span class="fn">json</span>()
+  <span class="kw">return</span> (
+    <span class="tag">&lt;ul&gt;</span>
+      {posts.<span class="fn">map</span>((post) =&gt; <span class="tag">&lt;li</span> <span class="prop">key</span>={post.id}<span class="tag">&gt;</span>{post.title}<span class="tag">&lt;/li&gt;</span>)}
+    <span class="tag">&lt;/ul&gt;</span>
+  )
+}</code></pre>
+
+      <div class="callout warn">
+        <div class="callout-label">Thay đổi quan trọng</div>
+        <p>Từ Next.js 15, <code>fetch</code> requests <strong>không còn cache mặc định</strong>. Dùng <code>use cache</code> directive hoặc <code>cache: 'force-cache'</code> để opt-in caching.</p>
+      </div>
+
+      <h3>Database queries với ORM</h3>
+      <pre data-lang="tsx"><code><span class="kw">import</span> { db, posts } <span class="kw">from</span> <span class="str">'@/lib/db'</span>
+
+<span class="kw">export default async function</span> <span class="fn">Page</span>() {
+  <span class="kw">const</span> allPosts = <span class="kw">await</span> db.<span class="fn">select</span>().<span class="fn">from</span>(posts)
+  <span class="kw">return</span> <span class="tag">&lt;ul&gt;</span>{allPosts.<span class="fn">map</span>(/* ... */)}<span class="tag">&lt;/ul&gt;</span>
+}</code></pre>
+      <p>Credentials và query logic không bị gửi xuống client bundle.</p>
+
+      <h3>Streaming với Suspense</h3>
+      <pre data-lang="tsx"><code><span class="kw">import</span> { Suspense } <span class="kw">from</span> <span class="str">'react'</span>
+<span class="kw">import</span> Posts <span class="kw">from</span> <span class="str">'@/app/ui/posts'</span>
+
+<span class="kw">export default function</span> <span class="fn">Page</span>() {
+  <span class="com">// KHÔNG await — truyền promise xuống</span>
+  <span class="kw">const</span> posts = <span class="fn">getPosts</span>()
+  <span class="kw">return</span> (
+    <span class="tag">&lt;Suspense</span> <span class="prop">fallback</span>={<span class="tag">&lt;div&gt;</span>Loading...<span class="tag">&lt;/div&gt;</span>}<span class="tag">&gt;</span>
+      <span class="tag">&lt;Posts</span> <span class="prop">posts</span>={posts} <span class="tag">/&gt;</span>
+    <span class="tag">&lt;/Suspense&gt;</span>
+  )
+}</code></pre>
+
+      <pre data-lang="tsx"><code><span class="str">'use client'</span>
+<span class="kw">import</span> { use } <span class="kw">from</span> <span class="str">'react'</span>
+
+<span class="kw">export default function</span> <span class="fn">Posts</span>({ posts }) {
+  <span class="kw">const</span> allPosts = <span class="fn">use</span>(posts) <span class="com">// đọc promise ở client</span>
+  <span class="kw">return</span> <span class="tag">&lt;ul&gt;</span>{allPosts.<span class="fn">map</span>(/* ... */)}<span class="tag">&lt;/ul&gt;</span>
+}</code></pre>
+
+      <h3>Parallel fetching</h3>
+      <p>Requests tuần tự block nhau. Dùng <code>Promise.all</code> để parallel:</p>
+      <pre data-lang="tsx"><code><span class="kw">const</span> [artist, albums] = <span class="kw">await</span> Promise.<span class="fn">all</span>([
+  <span class="fn">getArtist</span>(username),
+  <span class="fn">getAlbums</span>(username),
+])</code></pre>
+    </section>
+
+    <!-- 10. CACHING -->
+    <section class="chapter" id="caching">
+      <div class="chapter-num">Chương 10</div>
+      <h2>Caching <em>&amp;</em> Revalidating</h2>
+      <p>Directive <code>'use cache'</code> cache giá trị trả về của async function/component. Áp dụng ở 2 cấp: <strong>data-level</strong> (function fetch data) và <strong>UI-level</strong> (cả component).</p>
+
+      <h3>Cache data function</h3>
+      <pre data-lang="tsx"><code><span class="kw">async function</span> <span class="fn">getProducts</span>() {
+  <span class="str">'use cache'</span>
+  <span class="kw">const</span> res = <span class="kw">await</span> <span class="fn">fetch</span>(<span class="str">'https://api.example.com/products'</span>)
+  <span class="kw">return</span> res.<span class="fn">json</span>()
+}</code></pre>
+
+      <h3>Cache toàn bộ component</h3>
+      <pre data-lang="tsx"><code><span class="kw">async function</span> <span class="fn">BlogPosts</span>() {
+  <span class="str">'use cache'</span>
+  <span class="kw">const</span> posts = <span class="kw">await</span> <span class="fn">getPosts</span>()
+  <span class="kw">return</span> <span class="tag">&lt;ul&gt;</span>{/* ... */}<span class="tag">&lt;/ul&gt;</span>
+}</code></pre>
+
+      <p>Arguments và closed-over values tự động trở thành cache key, cho phép content được cache có tham số riêng cho từng input.</p>
+
+      <h3>Revalidation</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Chiến lược</th><th>Cách dùng</th></tr></thead>
+          <tbody>
+            <tr><td>Time-based</td><td><code>cacheLife()</code> với thời gian cụ thể</td></tr>
+            <tr><td>Tag-based</td><td><code>cacheTag('posts')</code> + <code>revalidateTag('posts')</code></td></tr>
+            <tr><td>Path-based</td><td><code>revalidatePath('/blog')</code></td></tr>
+            <tr><td>On-demand</td><td>Gọi từ Server Action hoặc Route Handler</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="callout tip">
+        <div class="callout-label">Partial Prerendering</div>
+        <p>Khi bật Cache Components, Next.js prerender routes thành static shell và chỉ defer các phần dynamic sang request-time — combine lợi ích của static và dynamic.</p>
+      </div>
+    </section>
+
+    <!-- 11. UPDATING DATA -->
+    <section class="chapter" id="updating-data">
+      <div class="chapter-num">Chương 11</div>
+      <h2>Updating Data</h2>
+      <p>Update data trong Next.js qua React <strong>Server Functions</strong>. Đây là async functions chạy trên server, có thể gọi từ client qua network request. Khi dùng trong context form/mutation, gọi là <strong>Server Actions</strong>.</p>
+
+      <h3>Tạo Server Function</h3>
+      <p>Thêm directive <code>'use server'</code> ở đầu file hoặc đầu function body:</p>
+      <pre data-lang="tsx"><code><span class="com">// app/actions.ts</span>
+<span class="str">'use server'</span>
+
+<span class="kw">export async function</span> <span class="fn">createPost</span>(formData: FormData) {
+  <span class="kw">const</span> title = formData.<span class="fn">get</span>(<span class="str">'title'</span>)
+  <span class="kw">const</span> content = formData.<span class="fn">get</span>(<span class="str">'content'</span>)
+  <span class="com">// Update data</span>
+  <span class="com">// Revalidate cache</span>
+}</code></pre>
+
+      <h3>Dùng trong form</h3>
+      <pre data-lang="tsx"><code><span class="kw">import</span> { createPost } <span class="kw">from</span> <span class="str">'@/app/actions'</span>
+
+<span class="kw">export function</span> <span class="fn">Form</span>() {
+  <span class="kw">return</span> (
+    <span class="tag">&lt;form</span> <span class="prop">action</span>={createPost}<span class="tag">&gt;</span>
+      <span class="tag">&lt;input</span> <span class="prop">name</span>=<span class="str">"title"</span> <span class="tag">/&gt;</span>
+      <span class="tag">&lt;input</span> <span class="prop">name</span>=<span class="str">"content"</span> <span class="tag">/&gt;</span>
+      <span class="tag">&lt;button</span> <span class="prop">type</span>=<span class="str">"submit"</span><span class="tag">&gt;</span>Create<span class="tag">&lt;/button&gt;</span>
+    <span class="tag">&lt;/form&gt;</span>
+  )
+}</code></pre>
+
+      <div class="callout tip">
+        <div class="callout-label">Progressive Enhancement</div>
+        <p>Server Components mặc định hỗ trợ progressive enhancement — form vẫn submit được kể cả khi JavaScript chưa load xong hoặc bị tắt.</p>
+      </div>
+
+      <h3>Gọi từ event handler</h3>
+      <pre data-lang="tsx"><code><span class="str">'use client'</span>
+<span class="kw">import</span> { incrementLike } <span class="kw">from</span> <span class="str">'./actions'</span>
+
+<span class="kw">export default function</span> <span class="fn">LikeButton</span>({ initialLikes }) {
+  <span class="kw">const</span> [likes, setLikes] = <span class="fn">useState</span>(initialLikes)
+  <span class="kw">return</span> (
+    <span class="tag">&lt;button</span> <span class="prop">onClick</span>={<span class="kw">async</span> () =&gt; {
+      <span class="kw">const</span> updated = <span class="kw">await</span> <span class="fn">incrementLike</span>()
+      <span class="fn">setLikes</span>(updated)
+    }}<span class="tag">&gt;</span>
+      Like ({likes})
+    <span class="tag">&lt;/button&gt;</span>
+  )
+}</code></pre>
+
+      <h3>Revalidate sau khi mutate</h3>
+      <pre data-lang="tsx"><code><span class="str">'use server'</span>
+<span class="kw">import</span> { revalidatePath } <span class="kw">from</span> <span class="str">'next/cache'</span>
+<span class="kw">import</span> { auth } <span class="kw">from</span> <span class="str">'@/lib/auth'</span>
+
+<span class="kw">export async function</span> <span class="fn">createPost</span>(formData: FormData) {
+  <span class="kw">const</span> session = <span class="kw">await</span> <span class="fn">auth</span>()
+  <span class="kw">if</span> (!session?.user) <span class="kw">throw new</span> <span class="fn">Error</span>(<span class="str">'Unauthorized'</span>)
+  
+  <span class="com">// ... insert to DB</span>
+  <span class="fn">revalidatePath</span>(<span class="str">'/posts'</span>)
+}</code></pre>
+
+      <div class="callout warn">
+        <div class="callout-label">Bảo mật</div>
+        <p>Server Functions là <strong>public HTTP endpoints</strong> — có thể gọi qua POST trực tiếp, không chỉ qua UI. Luôn verify authentication &amp; authorization bên trong mỗi Server Function.</p>
+      </div>
+    </section>
+
+    <!-- 12. ERROR HANDLING -->
+    <section class="chapter" id="error-handling">
+      <div class="chapter-num">Chương 12</div>
+      <h2>Error Handling</h2>
+      <p>Lỗi chia thành 2 loại: <strong>expected errors</strong> (validation, failed request) — model như return values; và <strong>uncaught exceptions</strong> — xử lý bằng error boundaries.</p>
+
+      <h3>Expected errors — <code>useActionState</code></h3>
+      <pre data-lang="tsx"><code><span class="str">'use server'</span>
+
+<span class="kw">export async function</span> <span class="fn">createPost</span>(prevState, formData) {
+  <span class="kw">const</span> res = <span class="kw">await</span> <span class="fn">fetch</span>(<span class="str">'/api/posts'</span>, { method: <span class="str">'POST'</span>, <span class="com">/* ... */</span> })
+  <span class="kw">if</span> (!res.ok) {
+    <span class="kw">return</span> { message: <span class="str">'Failed to create post'</span> }
+  }
+}</code></pre>
+
+      <pre data-lang="tsx"><code><span class="str">'use client'</span>
+<span class="kw">import</span> { useActionState } <span class="kw">from</span> <span class="str">'react'</span>
+<span class="kw">import</span> { createPost } <span class="kw">from</span> <span class="str">'@/app/actions'</span>
+
+<span class="kw">export function</span> <span class="fn">Form</span>() {
+  <span class="kw">const</span> [state, formAction] = <span class="fn">useActionState</span>(createPost, { message: <span class="str">''</span> })
+  <span class="kw">return</span> (
+    <span class="tag">&lt;form</span> <span class="prop">action</span>={formAction}<span class="tag">&gt;</span>
+      <span class="tag">&lt;input</span> <span class="prop">name</span>=<span class="str">"title"</span> <span class="tag">/&gt;</span>
+      {state?.message &amp;&amp; <span class="tag">&lt;p&gt;</span>{state.message}<span class="tag">&lt;/p&gt;</span>}
+      <span class="tag">&lt;button&gt;</span>Create<span class="tag">&lt;/button&gt;</span>
+    <span class="tag">&lt;/form&gt;</span>
+  )
+}</code></pre>
+
+      <h3>Uncaught exceptions — <code>error.tsx</code></h3>
+      <p>Tạo file <code>error.tsx</code> trong route segment (phải là Client Component):</p>
+      <pre data-lang="tsx"><code><span class="str">'use client'</span>
+
+<span class="kw">export default function</span> <span class="fn">Error</span>({
+  error,
+  reset,
+}: {
+  error: Error &amp; { digest?: <span class="kw">string</span> }
+  reset: () =&gt; <span class="kw">void</span>
+}) {
+  <span class="kw">return</span> (
+    <span class="tag">&lt;div&gt;</span>
+      <span class="tag">&lt;h2&gt;</span>Có lỗi xảy ra!<span class="tag">&lt;/h2&gt;</span>
+      <span class="tag">&lt;button</span> <span class="prop">onClick</span>={() =&gt; <span class="fn">reset</span>()}<span class="tag">&gt;</span>Thử lại<span class="tag">&lt;/button&gt;</span>
+    <span class="tag">&lt;/div&gt;</span>
+  )
+}</code></pre>
+
+      <div class="callout">
+        <div class="callout-label">Error boundary scope</div>
+        <p><code>error.js</code> bao phủ <code>loading.js</code>, <code>not-found.js</code>, <code>page.js</code>, và nested <code>layout.js</code> — nhưng <strong>không</strong> bao <code>layout.js</code>/<code>template.js</code> cùng segment. Để handle lỗi ở root layout, dùng <code>global-error.js</code>.</p>
+      </div>
+
+      <h3>404 — <code>notFound()</code> &amp; <code>not-found.tsx</code></h3>
+      <pre data-lang="tsx"><code><span class="kw">import</span> { notFound } <span class="kw">from</span> <span class="str">'next/navigation'</span>
+
+<span class="kw">export default async function</span> <span class="fn">Page</span>({ params }) {
+  <span class="kw">const</span> { slug } = <span class="kw">await</span> params
+  <span class="kw">const</span> post = <span class="kw">await</span> <span class="fn">getPostBySlug</span>(slug)
+  <span class="kw">if</span> (!post) <span class="fn">notFound</span>()
+  <span class="kw">return</span> <span class="tag">&lt;div&gt;</span>{post.title}<span class="tag">&lt;/div&gt;</span>
+}</code></pre>
+
+      <h3>Global error — <code>global-error.tsx</code></h3>
+      <p>Bao toàn bộ app, kể cả root layout. Phải tự define <code>&lt;html&gt;</code> và <code>&lt;body&gt;</code>:</p>
+      <pre data-lang="tsx"><code><span class="str">'use client'</span>
+
+<span class="kw">export default function</span> <span class="fn">GlobalError</span>({ error, reset }) {
+  <span class="kw">return</span> (
+    <span class="tag">&lt;html&gt;</span>
+      <span class="tag">&lt;body&gt;</span>
+        <span class="tag">&lt;h2&gt;</span>Something went wrong!<span class="tag">&lt;/h2&gt;</span>
+        <span class="tag">&lt;button</span> <span class="prop">onClick</span>={() =&gt; <span class="fn">reset</span>()}<span class="tag">&gt;</span>Try again<span class="tag">&lt;/button&gt;</span>
+      <span class="tag">&lt;/body&gt;</span>
+    <span class="tag">&lt;/html&gt;</span>
+  )
+}</code></pre>
+    </section>
+
+    <!-- 13. PARTIAL PRERENDERING -->
+    <section class="chapter" id="partial-prerendering">
+      <div class="chapter-num">Chương 13</div>
+      <h2>Partial Prerendering</h2>
+      <p><strong>Partial Prerendering (PPR)</strong> là chiến lược render kết hợp static và dynamic content trong cùng 1 route. Cải thiện initial page performance mà vẫn hỗ trợ personalized, dynamic data.</p>
+
+      <h3>Cách hoạt động</h3>
+      <ol>
+        <li>Server gửi <strong>shell</strong> chứa static content → initial load cực nhanh</li>
+        <li>Shell có các "hole" cho dynamic content</li>
+        <li>Các hole được stream song song, giảm total load time</li>
+      </ol>
+
+      <h3>Enable PPR</h3>
+      <pre data-lang="ts"><code><span class="com">// next.config.ts</span>
+<span class="kw">import type</span> { NextConfig } <span class="kw">from</span> <span class="str">'next'</span>
+
+<span class="kw">const</span> nextConfig: NextConfig = {
+  experimental: {
+    ppr: <span class="str">'incremental'</span>,
+  },
+}
+<span class="kw">export default</span> nextConfig</code></pre>
+
+      <pre data-lang="tsx"><code><span class="com">// Opt-in cho từng route</span>
+<span class="kw">export const</span> experimental_ppr = <span class="kw">true</span>
+
+<span class="kw">export default function</span> <span class="fn">Layout</span>({ children }) {
+  <span class="kw">return</span> <span class="tag">&lt;section&gt;</span>{children}<span class="tag">&lt;/section&gt;</span>
+}</code></pre>
+
+      <h3>Suspense boundary</h3>
+      <p>Wrap dynamic components trong <code>&lt;Suspense&gt;</code> để defer rendering:</p>
+      <pre data-lang="tsx"><code><span class="kw">import</span> { Suspense } <span class="kw">from</span> <span class="str">'react'</span>
+
+<span class="kw">export default function</span> <span class="fn">Page</span>() {
+  <span class="kw">return</span> (
+    <span class="tag">&lt;&gt;</span>
+      <span class="tag">&lt;StaticComponent</span> <span class="tag">/&gt;</span>
+      <span class="tag">&lt;Suspense</span> <span class="prop">fallback</span>={<span class="tag">&lt;Fallback</span> <span class="tag">/&gt;</span>}<span class="tag">&gt;</span>
+        <span class="tag">&lt;DynamicComponent</span> <span class="tag">/&gt;</span>
+      <span class="tag">&lt;/Suspense&gt;</span>
+    <span class="tag">&lt;/&gt;</span>
+  )
+}</code></pre>
+
+      <div class="callout tip">
+        <div class="callout-label">Hiệu quả</div>
+        <p>Đặt Suspense boundary <strong>càng gần component cần defer càng tốt</strong>. Điều này maximize lượng content trong static shell, và cho phép nhiều dynamic section render song song.</p>
+      </div>
+    </section>
+
+    <!-- 14. METADATA & OG IMAGES -->
+    <section class="chapter" id="metadata">
+      <div class="chapter-num">Chương 14</div>
+      <h2>Metadata <em>&amp;</em> OG Images</h2>
+      <p>Next.js có Metadata API để định nghĩa metadata theo 2 cách: <strong>Config-based</strong> (export từ layout/page) và <strong>File-based</strong> (file quy ước như <code>favicon.ico</code>, <code>opengraph-image.jpg</code>).</p>
+
+      <h3>Static metadata</h3>
+      <pre data-lang="tsx"><code><span class="com">// app/blog/page.tsx</span>
+<span class="kw">import type</span> { Metadata } <span class="kw">from</span> <span class="str">'next'</span>
+
+<span class="kw">export const</span> metadata: Metadata = {
+  title: <span class="str">'My Blog'</span>,
+  description: <span class="str">'Read my latest posts'</span>,
+  openGraph: {
+    title: <span class="str">'My Blog'</span>,
+    images: [<span class="str">'/og.png'</span>],
+  },
+}
+
+<span class="kw">export default function</span> <span class="fn">Page</span>() { <span class="com">/* ... */</span> }</code></pre>
+
+      <h3>Dynamic metadata</h3>
+      <pre data-lang="tsx"><code><span class="kw">export async function</span> <span class="fn">generateMetadata</span>({ params }): Promise&lt;Metadata&gt; {
+  <span class="kw">const</span> { slug } = <span class="kw">await</span> params
+  <span class="kw">const</span> post = <span class="kw">await</span> <span class="fn">getPost</span>(slug)
+  <span class="kw">return</span> {
+    title: post.title,
+    description: post.excerpt,
+  }
+}</code></pre>
+
+      <h3>Favicon</h3>
+      <p>Đặt file <code>favicon.ico</code> vào root của thư mục <code>app/</code>. Next.js tự generate <code>&lt;link rel="icon"&gt;</code>.</p>
+
+      <h3>Static OG image</h3>
+      <p>Đặt file <code>opengraph-image.jpg</code> vào route segment. Ảnh cụ thể hơn sẽ override ảnh ở root:</p>
+      <div class="file-tree">
+<span class="dir">app/</span>
+  <span class="file">opengraph-image.jpg</span>       <span class="comment"># OG mặc định</span>
+  <span class="dir">blog/</span>
+    <span class="file">opengraph-image.jpg</span>     <span class="comment"># OG cho /blog</span>
+      </div>
+
+      <h3>Dynamic OG image với <code>ImageResponse</code></h3>
+      <pre data-lang="tsx"><code><span class="com">// app/blog/[slug]/opengraph-image.tsx</span>
+<span class="kw">import</span> { ImageResponse } <span class="kw">from</span> <span class="str">'next/og'</span>
+<span class="kw">import</span> { getPost } <span class="kw">from</span> <span class="str">'@/app/lib/data'</span>
+
+<span class="kw">export const</span> size = { width: <span class="num">1200</span>, height: <span class="num">630</span> }
+<span class="kw">export const</span> contentType = <span class="str">'image/png'</span>
+
+<span class="kw">export default async function</span> <span class="fn">Image</span>({ params }) {
+  <span class="kw">const</span> post = <span class="kw">await</span> <span class="fn">getPost</span>(params.slug)
+  <span class="kw">return new</span> <span class="fn">ImageResponse</span>(
+    (
+      <span class="tag">&lt;div</span> <span class="prop">style</span>={{
+        fontSize: <span class="num">128</span>,
+        background: <span class="str">'white'</span>,
+        width: <span class="str">'100%'</span>,
+        height: <span class="str">'100%'</span>,
+        display: <span class="str">'flex'</span>,
+        alignItems: <span class="str">'center'</span>,
+        justifyContent: <span class="str">'center'</span>,
+      }}<span class="tag">&gt;</span>
+        {post.title}
+      <span class="tag">&lt;/div&gt;</span>
+    )
+  )
+}</code></pre>
+
+      <div class="callout warn">
+        <div class="callout-label">Hạn chế ImageResponse</div>
+        <p>Dùng <code>@vercel/og</code> + <code>satori</code> + <code>resvg</code> để convert HTML/CSS thành PNG. Chỉ hỗ trợ <strong>flexbox</strong> và subset của CSS — <code>display: grid</code> KHÔNG hoạt động.</p>
+      </div>
+    </section>
+
+    <!-- 15. DEPLOYING -->
+    <section class="chapter" id="deploying">
+      <div class="chapter-num">Chương 15</div>
+      <h2>Deploying</h2>
+      <p>Next.js có thể deploy theo 4 cách: <strong>Node.js server</strong>, <strong>Docker container</strong>, <strong>Static export</strong>, hoặc qua <strong>Adapter</strong>.</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Cách deploy</th><th>Hỗ trợ tính năng</th></tr></thead>
+          <tbody>
+            <tr><td>Node.js server</td><td>Đầy đủ</td></tr>
+            <tr><td>Docker container</td><td>Đầy đủ</td></tr>
+            <tr><td>Static export</td><td>Hạn chế (không dynamic)</td></tr>
+            <tr><td>Adapters</td><td>Tùy adapter</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Node.js</h3>
+      <pre data-lang="bash"><code><span class="com"># Đảm bảo package.json có "build" và "start"</span>
+npm run build
+npm run start</code></pre>
+
+      <h3>Docker</h3>
+      <p>Dùng multi-stage Dockerfile với <code>output: 'standalone'</code> trong <code>next.config.js</code> để tạo image tối thiểu.</p>
+
+      <h3>Static export</h3>
+      <pre data-lang="ts"><code><span class="com">// next.config.ts</span>
+<span class="kw">const</span> nextConfig = {
+  output: <span class="str">'export'</span>,
+}
+<span class="kw">export default</span> nextConfig</code></pre>
+      <p>Sau <code>next build</code>, thư mục <code>out/</code> chứa HTML/CSS/JS static — có thể host trên AWS S3, Nginx, Apache... Không hỗ trợ Server Components dynamic, Route Handlers động, v.v.</p>
+
+      <h3>Adapter API</h3>
+      <p>Next.js có Deployment Adapter API cho phép platforms custom cách build và deploy. Verified adapters chạy full test suite của Next.js. Cloudflare và Netlify đang xây dựng verified adapters; trong thời gian chờ, họ có integrations riêng.</p>
+
+      <div class="callout tip">
+        <div class="callout-label">Tối ưu self-host</div>
+        <p>Từ Next.js 15, không cần cài <code>sharp</code> thủ công — Next.js tự dùng khi chạy <code>next start</code> hoặc standalone mode.</p>
+      </div>
+    </section>
+
+    <!-- 16. UPGRADING -->
+    <section class="chapter" id="upgrading">
+      <div class="chapter-num">Chương 16</div>
+      <h2>Upgrading</h2>
+      <p>Để nâng cấp lên phiên bản mới nhất, dùng command <code>next upgrade</code> (có từ Next.js 16.1.0):</p>
+
+      <pre data-lang="bash"><code>pnpm next upgrade
+
+<span class="com"># Với phiên bản &lt; 16.1.0</span>
+npx @next/codemod@canary upgrade latest
+
+<span class="com"># Thủ công</span>
+pnpm i next@latest react@latest react-dom@latest eslint-config-next@latest</code></pre>
+
+      <h3>Codemod tự động</h3>
+      <p>Codemod là các transformation chạy trên codebase để tự áp dụng thay đổi. Cú pháp:</p>
+      <pre data-lang="bash"><code>npx @next/codemod &lt;transform&gt; &lt;path&gt;
+
+<span class="com"># Ví dụ: migrate cookies()/headers() sang async</span>
+npx @next/codemod@latest next-async-request-api .</code></pre>
+
+      <h3>Nâng cấp lên Next.js 16</h3>
+      <p>Codemod v16 xử lý tự động:</p>
+      <ul>
+        <li>Update <code>next.config.js</code> dùng cấu hình Turbopack mới</li>
+        <li>Migrate từ <code>next lint</code> sang ESLint CLI</li>
+        <li>Migrate từ convention <code>middleware</code> sang <code>proxy</code></li>
+        <li>Remove prefix <code>unstable_</code> khỏi các APIs đã stable</li>
+        <li>Remove <code>experimental_ppr</code> Route Segment Config khỏi pages/layouts</li>
+      </ul>
+
+      <div class="callout warn">
+        <div class="callout-label">Breaking — Next.js 16</div>
+        <p>Synchronous access cho <code>cookies()</code>, <code>headers()</code>, <code>draftMode()</code>, <code>params</code>, <code>searchParams</code> đã bị <strong>loại bỏ hoàn toàn</strong>. Phải dùng <code>await</code>.</p>
+      </div>
+
+      <h3>Nâng cấp lên Next.js 15</h3>
+      <ul>
+        <li><strong>React 19:</strong> App Router dùng React 19, Pages Router vẫn giữ React trong <code>package.json</code></li>
+        <li><strong>Async Request APIs:</strong> <code>cookies()</code>, <code>headers()</code>, <code>params</code>, <code>searchParams</code> giờ là async</li>
+        <li><strong>Caching:</strong> <code>fetch</code> và GET Route Handlers <strong>không cache mặc định</strong></li>
+        <li><strong>@next/font:</strong> đã xóa, dùng <code>next/font</code> built-in</li>
+        <li><strong>NextRequest.geo/ip:</strong> đã bị remove — dùng <code>@vercel/functions</code> hoặc header từ hosting provider</li>
+      </ul>
+
+      <h3>Canary channel</h3>
+      <pre data-lang="bash"><code>pnpm add next@canary</code></pre>
+      <p>Các tính năng canary hiện tại: <code>"use cache"</code>, <code>cacheLife</code>, <code>cacheTag</code>, <code>dynamicIO</code>, <code>forbidden</code>, <code>unauthorized</code>, <code>forbidden.js</code>, <code>unauthorized.js</code>, <code>authInterrupts</code>.</p>
+
+      <div class="callout tip">
+        <div class="callout-label">Typegen</div>
+        <p>Chạy <code>npx next typegen</code> để generate global type helpers như <code>PageProps&lt;'/blog/[slug]'&gt;</code>, <code>LayoutProps</code> — giúp migrate sang async params type-safe.</p>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<footer>
+  <div>
+    <div class="sig">Next.js Documentation — Getting Started</div>
+    <div style="color: var(--text-dimmer); font-size: 12px; margin-top: 4px;">Tổng hợp tiếng Việt · Nguồn: <a href="https://nextjs.org/docs" style="color: var(--text-dim);">nextjs.org/docs</a></div>
+  </div>
+  <div style="font-family: var(--mono); font-size: 11px; color: var(--text-dimmer);">v16.2.4 · 2026-04-15</div>
+</footer>
+
+<script>
+  // Sidebar active state on scroll
+  const sections = document.querySelectorAll('section.chapter');
+  const navLinks = document.querySelectorAll('.sidebar a');
+  
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const id = entry.target.id;
+        navLinks.forEach(link => {
+          link.classList.toggle('active', link.getAttribute('href') === '#' + id);
+        });
+      }
+    });
+  }, { rootMargin: '-40% 0px -50% 0px' });
+  
+  sections.forEach(s => observer.observe(s));
+</script>
+
+</body>
+</html>
