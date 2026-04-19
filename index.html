@@ -82,6 +82,36 @@
     background: rgba(74, 222, 128, 0.05);
   }
 
+  /* ========= MOBILE NAV TOGGLE ========= */
+  .nav-toggle {
+    display: none;
+    background: transparent;
+    border: 1px solid var(--border-hi);
+    color: var(--text);
+    padding: 8px 14px;
+    border-radius: 6px;
+    font-family: var(--mono);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    cursor: pointer;
+    align-items: center;
+    gap: 8px;
+  }
+  .nav-toggle:hover { border-color: var(--accent-green); color: var(--accent-green); }
+  .nav-toggle svg { width: 14px; height: 14px; }
+  .nav-backdrop {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    backdrop-filter: blur(4px);
+    z-index: 99;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+  }
+  .nav-backdrop.open { display: block; opacity: 1; }
+
   /* ========= LAYOUT ========= */
   .layout {
     max-width: 1280px; margin: 0 auto;
@@ -89,10 +119,6 @@
     grid-template-columns: 260px 1fr;
     gap: 48px;
     padding: 0 24px;
-  }
-  @media (max-width: 900px) {
-    .layout { grid-template-columns: 1fr; gap: 0; }
-    .sidebar { display: none; }
   }
 
   /* ========= SIDEBAR NAV ========= */
@@ -104,6 +130,42 @@
     padding: 32px 0;
     border-right: 1px solid var(--border);
     padding-right: 16px;
+  }
+
+  @media (max-width: 900px) {
+    .layout { grid-template-columns: 1fr; gap: 0; }
+    .nav-toggle { display: inline-flex; }
+    .sidebar {
+      position: fixed;
+      top: 0; left: 0;
+      height: 100vh;
+      width: 280px;
+      max-width: 85vw;
+      background: var(--bg-soft);
+      border-right: 1px solid var(--border);
+      padding: 88px 16px 32px 0;
+      z-index: 101;
+      transform: translateX(-100%);
+      transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 4px 0 24px rgba(0,0,0,0.5);
+    }
+    .sidebar.open { transform: translateX(0); }
+    .sidebar-close {
+      position: absolute;
+      top: 20px; right: 16px;
+      width: 32px; height: 32px;
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text-dim);
+      cursor: pointer;
+      display: grid; place-items: center;
+      font-size: 18px;
+    }
+    .sidebar-close:hover { color: var(--text); border-color: var(--border-hi); }
+  }
+  @media (min-width: 901px) {
+    .sidebar-close { display: none; }
   }
   .sidebar::-webkit-scrollbar { width: 4px; }
   .sidebar::-webkit-scrollbar-thumb { background: var(--border-hi); border-radius: 2px; }
@@ -416,13 +478,22 @@
         <span>Getting Started · Tiếng Việt</span>
       </div>
     </div>
-    <div class="version-badge">v16.2.4 · App Router</div>
+    <div style="display: flex; align-items: center; gap: 12px;">
+      <button class="nav-toggle" id="navToggle" aria-label="Mở mục lục">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        Mục lục
+      </button>
+      <div class="version-badge">v16.2.4</div>
+    </div>
   </div>
 </header>
 
+<div class="nav-backdrop" id="navBackdrop"></div>
+
 <div class="layout">
 
-  <aside class="sidebar">
+  <aside class="sidebar" id="sidebar">
+    <button class="sidebar-close" id="sidebarClose" aria-label="Đóng mục lục">×</button>
     <div class="nav-title">Mục lục</div>
     <ol>
       <li><a href="#installation">Cài đặt</a></li>
@@ -1404,6 +1475,39 @@ npx @next/codemod@latest next-async-request-api .</code></pre>
 </footer>
 
 <script>
+  // Mobile nav toggle
+  const sidebar = document.getElementById('sidebar');
+  const navToggle = document.getElementById('navToggle');
+  const navBackdrop = document.getElementById('navBackdrop');
+  const sidebarClose = document.getElementById('sidebarClose');
+
+  function openNav() {
+    sidebar.classList.add('open');
+    navBackdrop.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeNav() {
+    sidebar.classList.remove('open');
+    navBackdrop.classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  navToggle.addEventListener('click', openNav);
+  navBackdrop.addEventListener('click', closeNav);
+  sidebarClose.addEventListener('click', closeNav);
+
+  // Close when clicking a link (on mobile)
+  document.querySelectorAll('.sidebar a').forEach(link => {
+    link.addEventListener('click', () => {
+      if (window.innerWidth <= 900) closeNav();
+    });
+  });
+
+  // Close with Escape key
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && sidebar.classList.contains('open')) closeNav();
+  });
+
   // Sidebar active state on scroll
   const sections = document.querySelectorAll('section.chapter');
   const navLinks = document.querySelectorAll('.sidebar a');
