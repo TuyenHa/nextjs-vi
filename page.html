@@ -1,0 +1,1422 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Next.js — Pages Router (Tổng hợp tiếng Việt)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,900&family=JetBrains+Mono:wght@400;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0a;
+    --bg-soft: #111111;
+    --surface: #161616;
+    --border: #262626;
+    --border-hi: #3a3a3a;
+    --text: #ededed;
+    --text-dim: #a1a1a1;
+    --text-dimmer: #6e6e6e;
+    --accent: #fafafa;
+    --accent-amber: #fbbf24;     /* Màu chính - amber cho Pages Router */
+    --accent-green: #4ade80;
+    --accent-cyan: #67e8f9;
+    --accent-rose: #fda4af;
+    --code-bg: #0d0d0d;
+    --code-border: #222;
+    --display: 'Fraunces', Georgia, serif;
+    --body: 'Inter', system-ui, sans-serif;
+    --mono: 'JetBrains Mono', 'SF Mono', Menlo, monospace;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; scroll-padding-top: 80px; }
+
+  body {
+    font-family: var(--body);
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.65;
+    font-size: 15.5px;
+    -webkit-font-smoothing: antialiased;
+    background-image:
+      radial-gradient(ellipse 80% 50% at 50% -20%, rgba(251, 191, 36, 0.08), transparent),
+      radial-gradient(ellipse 60% 40% at 90% 120%, rgba(253, 164, 175, 0.06), transparent);
+    background-attachment: fixed;
+  }
+
+  /* ========= HEADER ========= */
+  .topbar {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(10,10,10,0.85);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    border-bottom: 1px solid var(--border);
+  }
+  .topbar-inner {
+    max-width: 1280px; margin: 0 auto;
+    padding: 14px 24px;
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 24px;
+  }
+  .brand { display: flex; align-items: center; gap: 10px; }
+  .brand-mark {
+    width: 28px; height: 28px;
+    background: var(--accent-amber); color: var(--bg);
+    display: grid; place-items: center;
+    font-family: var(--display); font-weight: 900; font-size: 18px;
+    border-radius: 6px;
+    font-style: italic;
+  }
+  .brand-text { display: flex; flex-direction: column; line-height: 1.1; }
+  .brand-text strong { font-family: var(--display); font-weight: 600; font-size: 16px; letter-spacing: -0.01em; }
+  .brand-text span { font-size: 11px; color: var(--text-dim); font-family: var(--mono); text-transform: uppercase; letter-spacing: 0.08em; }
+  .version-badge {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--accent-amber);
+    border: 1px solid var(--border-hi);
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: rgba(251, 191, 36, 0.05);
+  }
+
+  /* ========= MOBILE NAV TOGGLE ========= */
+  .nav-toggle {
+    display: none;
+    background: transparent;
+    border: 1px solid var(--border-hi);
+    color: var(--text);
+    padding: 8px 14px;
+    border-radius: 6px;
+    font-family: var(--mono);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    cursor: pointer;
+    align-items: center;
+    gap: 8px;
+  }
+  .nav-toggle:hover { border-color: var(--accent-amber); color: var(--accent-amber); }
+  .nav-toggle svg { width: 14px; height: 14px; }
+  .nav-backdrop {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    backdrop-filter: blur(4px);
+    z-index: 99;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+  }
+  .nav-backdrop.open { display: block; opacity: 1; }
+
+  /* ========= LAYOUT ========= */
+  .layout {
+    max-width: 1280px; margin: 0 auto;
+    display: grid;
+    grid-template-columns: 260px 1fr;
+    gap: 48px;
+    padding: 0 24px;
+  }
+
+  /* ========= SIDEBAR NAV ========= */
+  .sidebar {
+    position: sticky; top: 76px;
+    align-self: start;
+    height: calc(100vh - 76px);
+    overflow-y: auto;
+    padding: 32px 0;
+    border-right: 1px solid var(--border);
+    padding-right: 16px;
+  }
+  .sidebar::-webkit-scrollbar { width: 4px; }
+  .sidebar::-webkit-scrollbar-thumb { background: var(--border-hi); border-radius: 2px; }
+
+  @media (max-width: 900px) {
+    .layout { grid-template-columns: 1fr; gap: 0; }
+    .nav-toggle { display: inline-flex; }
+    .sidebar {
+      position: fixed;
+      top: 0; left: 0;
+      height: 100vh;
+      width: 280px;
+      max-width: 85vw;
+      background: var(--bg-soft);
+      border-right: 1px solid var(--border);
+      padding: 88px 16px 32px 0;
+      z-index: 101;
+      transform: translateX(-100%);
+      transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 4px 0 24px rgba(0,0,0,0.5);
+    }
+    .sidebar.open { transform: translateX(0); }
+    .sidebar-close {
+      position: absolute;
+      top: 20px; right: 16px;
+      width: 32px; height: 32px;
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text-dim);
+      cursor: pointer;
+      display: grid; place-items: center;
+      font-size: 18px;
+    }
+    .sidebar-close:hover { color: var(--text); border-color: var(--border-hi); }
+  }
+  @media (min-width: 901px) {
+    .sidebar-close { display: none; }
+  }
+
+  .nav-title {
+    font-family: var(--mono);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--text-dimmer);
+    margin-bottom: 12px;
+    padding-left: 14px;
+  }
+  .sidebar ol { list-style: none; counter-reset: step; }
+  .sidebar li { counter-increment: step; }
+  .sidebar a {
+    display: block;
+    padding: 7px 14px;
+    font-size: 13.5px;
+    color: var(--text-dim);
+    text-decoration: none;
+    border-left: 2px solid transparent;
+    transition: all 0.15s ease;
+    position: relative;
+  }
+  .sidebar a::before {
+    content: counter(step, decimal-leading-zero);
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text-dimmer);
+    margin-right: 10px;
+  }
+  .sidebar a:hover { color: var(--text); border-left-color: var(--border-hi); }
+  .sidebar a.active { color: var(--accent-amber); border-left-color: var(--accent-amber); background: rgba(251,191,36,0.03); }
+
+  /* ========= MAIN ========= */
+  main { padding: 40px 0 120px; min-width: 0; }
+
+  /* ========= LEGACY BANNER ========= */
+  .legacy-banner {
+    margin-bottom: 40px;
+    padding: 18px 22px;
+    background: linear-gradient(135deg, rgba(251, 191, 36, 0.08), rgba(253, 164, 175, 0.04));
+    border: 1px solid rgba(251, 191, 36, 0.25);
+    border-radius: 10px;
+    display: flex;
+    gap: 16px;
+    align-items: start;
+  }
+  .legacy-banner-icon {
+    width: 32px; height: 32px;
+    background: rgba(251, 191, 36, 0.15);
+    border-radius: 6px;
+    display: grid; place-items: center;
+    font-size: 16px;
+    flex-shrink: 0;
+  }
+  .legacy-banner p { margin: 0; color: var(--text); font-size: 14px; line-height: 1.55; max-width: none; }
+  .legacy-banner p strong { color: var(--accent-amber); }
+
+  /* ========= HERO ========= */
+  .hero {
+    padding: 60px 0 80px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 56px;
+  }
+  .hero-eyebrow {
+    font-family: var(--mono);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: var(--accent-amber);
+    margin-bottom: 20px;
+  }
+  .hero h1 {
+    font-family: var(--display);
+    font-weight: 400;
+    font-size: clamp(42px, 6vw, 78px);
+    line-height: 0.98;
+    letter-spacing: -0.035em;
+    color: var(--accent);
+    margin-bottom: 24px;
+  }
+  .hero h1 em {
+    font-style: italic;
+    font-weight: 500;
+    color: var(--accent-amber);
+  }
+  .hero .lede {
+    font-size: 18px;
+    color: var(--text-dim);
+    max-width: 620px;
+    line-height: 1.55;
+  }
+  .hero-meta {
+    display: flex; gap: 32px; margin-top: 40px;
+    padding-top: 28px;
+    border-top: 1px solid var(--border);
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-dimmer);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    flex-wrap: wrap;
+  }
+  .hero-meta span strong { color: var(--text); display: block; margin-top: 4px; font-family: var(--body); font-size: 13px; text-transform: none; letter-spacing: normal; font-weight: 500; }
+
+  /* ========= SECTIONS ========= */
+  section.chapter {
+    scroll-margin-top: 80px;
+    padding: 48px 0 64px;
+    border-bottom: 1px dashed var(--border);
+  }
+  section.chapter:last-of-type { border-bottom: none; }
+  .chapter-num {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-dimmer);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-bottom: 14px;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .chapter-num::after {
+    content: ''; flex: 1; height: 1px; background: var(--border);
+  }
+  h2 {
+    font-family: var(--display);
+    font-weight: 500;
+    font-size: clamp(32px, 4vw, 46px);
+    line-height: 1.05;
+    letter-spacing: -0.025em;
+    color: var(--accent);
+    margin-bottom: 20px;
+  }
+  h2 em { font-style: italic; color: var(--accent-rose); font-weight: 400; }
+  h3 {
+    font-family: var(--display);
+    font-weight: 600;
+    font-size: 22px;
+    letter-spacing: -0.01em;
+    margin-top: 40px;
+    margin-bottom: 14px;
+    color: var(--accent);
+  }
+  h4 {
+    font-weight: 600;
+    font-size: 15px;
+    margin-top: 24px;
+    margin-bottom: 10px;
+    color: var(--text);
+  }
+  p { margin-bottom: 16px; color: var(--text-dim); max-width: 720px; }
+  p strong, li strong { color: var(--text); font-weight: 600; }
+  a { color: var(--accent-cyan); text-decoration: none; border-bottom: 1px dotted var(--accent-cyan); }
+  a:hover { color: var(--accent-amber); border-bottom-color: var(--accent-amber); }
+
+  ul, ol { margin: 0 0 18px 0; padding-left: 0; list-style: none; max-width: 720px; }
+  ul li, ol li {
+    padding: 5px 0 5px 22px;
+    position: relative;
+    color: var(--text-dim);
+  }
+  ul li::before {
+    content: '→';
+    position: absolute;
+    left: 0; top: 5px;
+    color: var(--accent-amber);
+    font-family: var(--mono);
+  }
+  ol { counter-reset: olc; }
+  ol li { counter-increment: olc; }
+  ol li::before {
+    content: counter(olc) '.';
+    position: absolute;
+    left: 0; top: 5px;
+    color: var(--accent-amber);
+    font-family: var(--mono);
+    font-weight: 600;
+  }
+
+  /* ========= CODE ========= */
+  code {
+    font-family: var(--mono);
+    font-size: 0.88em;
+    background: var(--code-bg);
+    border: 1px solid var(--code-border);
+    padding: 1px 6px;
+    border-radius: 4px;
+    color: var(--accent-amber);
+  }
+  pre {
+    background: var(--code-bg);
+    border: 1px solid var(--code-border);
+    border-radius: 8px;
+    padding: 18px 20px;
+    overflow-x: auto;
+    margin: 18px 0 24px;
+    font-size: 13px;
+    line-height: 1.6;
+    position: relative;
+    max-width: 100%;
+  }
+  pre::before {
+    content: attr(data-lang);
+    position: absolute;
+    top: 0; right: 0;
+    font-family: var(--mono);
+    font-size: 10px;
+    padding: 6px 12px;
+    color: var(--text-dimmer);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    border-left: 1px solid var(--code-border);
+    border-bottom: 1px solid var(--code-border);
+    border-radius: 0 8px 0 8px;
+  }
+  pre code {
+    background: none; border: none; padding: 0;
+    color: var(--text);
+    font-size: inherit;
+  }
+  .kw { color: #f472b6; }
+  .str { color: var(--accent-green); }
+  .com { color: var(--text-dimmer); font-style: italic; }
+  .fn { color: var(--accent-cyan); }
+  .num { color: var(--accent-amber); }
+  .tag { color: var(--accent-rose); }
+  .prop { color: #93c5fd; }
+
+  /* ========= CALLOUT ========= */
+  .callout {
+    margin: 24px 0;
+    padding: 16px 20px;
+    border-left: 3px solid var(--accent-amber);
+    background: rgba(251, 191, 36, 0.04);
+    border-radius: 0 6px 6px 0;
+  }
+  .callout.tip { border-left-color: var(--accent-green); background: rgba(74, 222, 128, 0.04); }
+  .callout.warn { border-left-color: #f97316; background: rgba(249, 115, 22, 0.04); }
+  .callout.compare { border-left-color: var(--accent-cyan); background: rgba(103, 232, 249, 0.04); }
+  .callout-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--accent-amber);
+    margin-bottom: 6px;
+    font-weight: 600;
+  }
+  .callout.tip .callout-label { color: var(--accent-green); }
+  .callout.warn .callout-label { color: #f97316; }
+  .callout.compare .callout-label { color: var(--accent-cyan); }
+  .callout p { margin-bottom: 0; color: var(--text); font-size: 14px; max-width: none; }
+
+  /* ========= TABLE ========= */
+  .table-wrap { overflow-x: auto; margin: 20px 0; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    overflow: hidden;
+  }
+  th, td {
+    padding: 12px 16px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+    color: var(--text-dim);
+    vertical-align: top;
+  }
+  th {
+    background: var(--surface);
+    font-weight: 600;
+    color: var(--text);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-family: var(--mono);
+  }
+  tr:last-child td { border-bottom: none; }
+
+  /* ========= FOOTER ========= */
+  footer {
+    max-width: 1280px; margin: 0 auto;
+    padding: 40px 24px 60px;
+    border-top: 1px solid var(--border);
+    color: var(--text-dimmer);
+    font-size: 13px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+  footer .sig { font-family: var(--display); font-style: italic; }
+
+  /* ========= MISC ========= */
+  .file-tree {
+    font-family: var(--mono);
+    font-size: 13px;
+    background: var(--code-bg);
+    border: 1px solid var(--code-border);
+    border-radius: 8px;
+    padding: 18px 22px;
+    color: var(--text-dim);
+    line-height: 1.9;
+    margin: 20px 0;
+    overflow-x: auto;
+  }
+  .file-tree .dir { color: var(--accent-cyan); }
+  .file-tree .file { color: var(--text); }
+  .file-tree .comment { color: var(--text-dimmer); margin-left: 12px; }
+
+  .key-concept {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--accent-rose);
+    background: rgba(253, 164, 175, 0.07);
+    border: 1px solid rgba(253, 164, 175, 0.2);
+    padding: 2px 8px;
+    border-radius: 4px;
+    margin-right: 6px;
+    margin-bottom: 6px;
+  }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">
+      <div class="brand-mark">N</div>
+      <div class="brand-text">
+        <strong>Next.js Docs</strong>
+        <span>Pages Router · Tiếng Việt</span>
+      </div>
+    </div>
+    <div style="display: flex; align-items: center; gap: 12px;">
+      <button class="nav-toggle" id="navToggle" aria-label="Mở mục lục">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        Mục lục
+      </button>
+      <div class="version-badge">v16 · Pages</div>
+    </div>
+  </div>
+</header>
+
+<div class="nav-backdrop" id="navBackdrop"></div>
+
+<div class="layout">
+
+  <aside class="sidebar" id="sidebar">
+    <button class="sidebar-close" id="sidebarClose" aria-label="Đóng mục lục">×</button>
+    <div class="nav-title">Mục lục</div>
+    <ol>
+      <li><a href="#installation">Cài đặt</a></li>
+      <li><a href="#project-structure">Cấu trúc dự án</a></li>
+      <li><a href="#pages-layouts">Pages &amp; Layouts</a></li>
+      <li><a href="#dynamic-routes">Dynamic Routes</a></li>
+      <li><a href="#linking">Linking &amp; Navigating</a></li>
+      <li><a href="#custom-app">Custom App (<code>_app</code>)</a></li>
+      <li><a href="#custom-document">Custom Document (<code>_document</code>)</a></li>
+      <li><a href="#rendering">Rendering Strategies</a></li>
+      <li><a href="#get-static-props">getStaticProps (SSG)</a></li>
+      <li><a href="#get-static-paths">getStaticPaths</a></li>
+      <li><a href="#get-server-side-props">getServerSideProps (SSR)</a></li>
+      <li><a href="#client-fetching">Client-side Fetching</a></li>
+      <li><a href="#api-routes">API Routes</a></li>
+      <li><a href="#custom-errors">Custom Errors</a></li>
+      <li><a href="#images-fonts">Images &amp; Fonts</a></li>
+      <li><a href="#css">CSS</a></li>
+      <li><a href="#deploying">Deploying</a></li>
+      <li><a href="#upgrading">Upgrading &amp; Migration</a></li>
+    </ol>
+  </aside>
+
+  <main>
+
+    <!-- HERO -->
+    <div class="hero">
+      <div class="hero-eyebrow">The Original Next.js Router</div>
+      <h1>Pages <em>Router</em></h1>
+      <p class="lede">
+        Tổng hợp đầy đủ tiếng Việt về Pages Router — router cổ điển của Next.js với <code>pages/</code> directory, <code>getStaticProps</code>, <code>getServerSideProps</code>, và API Routes. Vẫn được support trong Next.js 16+ nhưng khuyến nghị migrate sang App Router cho dự án mới.
+      </p>
+      <div class="hero-meta">
+        <span>Phiên bản<strong>16.x (tương thích)</strong></span>
+        <span>Directory<strong>pages/</strong></span>
+        <span>React<strong>Theo package.json</strong></span>
+        <span>Nguồn<strong>nextjs.org/docs/pages</strong></span>
+      </div>
+    </div>
+
+    <!-- LEGACY BANNER -->
+    <div class="legacy-banner">
+      <div class="legacy-banner-icon">⚠</div>
+      <p><strong>Đây là router gốc của Next.js.</strong> Next.js vẫn tiếp tục hỗ trợ Pages Router trong các phiên bản mới, nhưng team Next.js <strong>khuyến nghị migrate sang App Router</strong> cho dự án mới để dùng được Server Components và các tính năng React 19. Dự án hiện tại vẫn có thể dùng Pages Router bình thường.</p>
+    </div>
+
+    <!-- 01. INSTALLATION -->
+    <section class="chapter" id="installation">
+      <div class="chapter-num">Chương 01</div>
+      <h2>Cài đặt</h2>
+      <p>Tạo project Pages Router bằng CLI với flag <code>--no-app</code> (hoặc chọn "No" khi hỏi App Router trong setup tương tác):</p>
+
+      <pre data-lang="bash"><code><span class="com"># npm</span>
+npx create-next-app@latest my-app --no-app
+<span class="kw">cd</span> my-app
+npm run dev
+
+<span class="com"># pnpm</span>
+pnpm create next-app my-app --no-app
+<span class="kw">cd</span> my-app
+pnpm dev</code></pre>
+
+      <h3>Yêu cầu hệ thống</h3>
+      <ul>
+        <li><strong>Node.js:</strong> tối thiểu 20.9</li>
+        <li><strong>OS:</strong> macOS, Windows (gồm WSL), Linux</li>
+        <li><strong>Trình duyệt:</strong> Chrome 111+, Edge 111+, Firefox 111+, Safari 16.4+</li>
+      </ul>
+
+      <h3>Cài đặt thủ công</h3>
+      <pre data-lang="bash"><code>npm i next@latest react@latest react-dom@latest</code></pre>
+
+      <pre data-lang="json"><code>{
+  <span class="prop">"scripts"</span>: {
+    <span class="prop">"dev"</span>: <span class="str">"next dev"</span>,
+    <span class="prop">"build"</span>: <span class="str">"next build"</span>,
+    <span class="prop">"start"</span>: <span class="str">"next start"</span>,
+    <span class="prop">"lint"</span>: <span class="str">"eslint"</span>
+  }
+}</code></pre>
+
+      <h3>Tạo <code>pages</code> directory</h3>
+      <p>Pages Router dùng thư mục <code>pages/</code> (khác với App Router dùng <code>app/</code>). Tạo file đầu tiên:</p>
+
+      <pre data-lang="tsx"><code><span class="com">// pages/index.tsx — route "/"</span>
+<span class="kw">export default function</span> <span class="fn">Home</span>() {
+  <span class="kw">return</span> <span class="tag">&lt;h1&gt;</span>Hello, Next.js!<span class="tag">&lt;/h1&gt;</span>
+}</code></pre>
+
+      <div class="callout compare">
+        <div class="callout-label">So sánh với App Router</div>
+        <p>Pages Router dùng <strong>React phiên bản khai báo trong <code>package.json</code></strong> của bạn — không auto-upgrade như App Router. Điều này đảm bảo tương thích ngược cho các ứng dụng Pages Router hiện có.</p>
+      </div>
+    </section>
+
+    <!-- 02. PROJECT STRUCTURE -->
+    <section class="chapter" id="project-structure">
+      <div class="chapter-num">Chương 02</div>
+      <h2>Cấu trúc dự án</h2>
+      <p>Mỗi file trong <code>pages/</code> tự động trở thành 1 route dựa trên tên file. Cấu trúc điển hình:</p>
+
+      <div class="file-tree">
+<span class="dir">pages/</span>
+  <span class="file">_app.tsx</span>                 <span class="comment"># Custom App — layout toàn cục</span>
+  <span class="file">_document.tsx</span>            <span class="comment"># Custom Document — HTML gốc</span>
+  <span class="file">_error.tsx</span>               <span class="comment"># Custom error page</span>
+  <span class="file">404.tsx</span>                  <span class="comment"># Custom 404</span>
+  <span class="file">500.tsx</span>                  <span class="comment"># Custom 500</span>
+  <span class="file">index.tsx</span>                <span class="comment"># /</span>
+  <span class="file">about.tsx</span>                <span class="comment"># /about</span>
+  <span class="dir">blog/</span>
+    <span class="file">index.tsx</span>              <span class="comment"># /blog</span>
+    <span class="file">[slug].tsx</span>             <span class="comment"># /blog/:slug — dynamic</span>
+  <span class="dir">api/</span>
+    <span class="file">hello.ts</span>               <span class="comment"># /api/hello — API route</span>
+    <span class="dir">posts/</span>
+      <span class="file">[id].ts</span>              <span class="comment"># /api/posts/:id</span>
+<span class="dir">public/</span>                       <span class="comment"># Static assets</span>
+<span class="dir">styles/</span>                       <span class="comment"># Global CSS (tùy chọn)</span>
+<span class="file">next.config.js</span>
+      </div>
+
+      <h3>File đặc biệt trong <code>pages/</code></h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>File</th><th>Vai trò</th></tr></thead>
+          <tbody>
+            <tr><td><code>_app.tsx</code></td><td>Override App component — wrap toàn bộ pages, áp layout chung, import global CSS</td></tr>
+            <tr><td><code>_document.tsx</code></td><td>Override <code>&lt;html&gt;</code> và <code>&lt;body&gt;</code> — chạy 1 lần trên server</td></tr>
+            <tr><td><code>_error.tsx</code></td><td>Custom error page thay cho trang lỗi mặc định</td></tr>
+            <tr><td><code>404.tsx</code></td><td>Page riêng cho lỗi 404 (static)</td></tr>
+            <tr><td><code>500.tsx</code></td><td>Page riêng cho lỗi 500 (static)</td></tr>
+            <tr><td><code>api/*</code></td><td>API endpoints — server-only, không gửi xuống client bundle</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Quy ước tên folder</h3>
+      <div style="display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0 20px;">
+        <span class="key-concept">[param]</span>
+        <span class="key-concept">[...param]</span>
+        <span class="key-concept">[[...param]]</span>
+      </div>
+      <ul>
+        <li><code>pages/posts/[id].js</code> → <code>/posts/1</code>, <code>/posts/abc</code> — Dynamic segment</li>
+        <li><code>pages/shop/[...slug].js</code> → <code>/shop/a</code>, <code>/shop/a/b/c</code> — Catch-all</li>
+        <li><code>pages/shop/[[...slug]].js</code> → cả <code>/shop</code> lẫn <code>/shop/a/b</code> — Optional catch-all</li>
+      </ul>
+    </section>
+
+    <!-- 03. PAGES & LAYOUTS -->
+    <section class="chapter" id="pages-layouts">
+      <div class="chapter-num">Chương 03</div>
+      <h2>Pages <em>&amp;</em> Layouts</h2>
+      <p>Trong Pages Router, <strong>không có file <code>layout.tsx</code> đặc biệt</strong> như App Router. Layout được implement bằng React components thông thường.</p>
+
+      <h3>Single layout với Custom App</h3>
+      <p>Nếu cả app dùng 1 layout duy nhất, bọc nó trong <code>_app.tsx</code>:</p>
+      <pre data-lang="tsx"><code><span class="com">// pages/_app.tsx</span>
+<span class="kw">import type</span> { AppProps } <span class="kw">from</span> <span class="str">'next/app'</span>
+<span class="kw">import</span> Layout <span class="kw">from</span> <span class="str">'../components/layout'</span>
+
+<span class="kw">export default function</span> <span class="fn">MyApp</span>({ Component, pageProps }: AppProps) {
+  <span class="kw">return</span> (
+    <span class="tag">&lt;Layout&gt;</span>
+      <span class="tag">&lt;Component</span> {...pageProps} <span class="tag">/&gt;</span>
+    <span class="tag">&lt;/Layout&gt;</span>
+  )
+}</code></pre>
+
+      <h3>Per-page layouts</h3>
+      <p>Nếu cần layout khác nhau cho mỗi page (vd: dashboard khác marketing), dùng pattern <code>getLayout</code>:</p>
+      <pre data-lang="tsx"><code><span class="com">// pages/_app.tsx</span>
+<span class="kw">import type</span> { ReactElement, ReactNode } <span class="kw">from</span> <span class="str">'react'</span>
+<span class="kw">import type</span> { NextPage } <span class="kw">from</span> <span class="str">'next'</span>
+<span class="kw">import type</span> { AppProps } <span class="kw">from</span> <span class="str">'next/app'</span>
+
+<span class="kw">export type</span> NextPageWithLayout&lt;P = {}&gt; = NextPage&lt;P&gt; &amp; {
+  getLayout?: (page: ReactElement) =&gt; ReactNode
+}
+
+<span class="kw">type</span> AppPropsWithLayout = AppProps &amp; {
+  Component: NextPageWithLayout
+}
+
+<span class="kw">export default function</span> <span class="fn">MyApp</span>({ Component, pageProps }: AppPropsWithLayout) {
+  <span class="com">// Nếu page có getLayout, dùng nó; không thì trả về page trần</span>
+  <span class="kw">const</span> getLayout = Component.getLayout ?? ((page) =&gt; page)
+  <span class="kw">return</span> <span class="fn">getLayout</span>(<span class="tag">&lt;Component</span> {...pageProps} <span class="tag">/&gt;</span>)
+}</code></pre>
+
+      <pre data-lang="tsx"><code><span class="com">// pages/dashboard.tsx</span>
+<span class="kw">import</span> DashboardLayout <span class="kw">from</span> <span class="str">'@/components/dashboard-layout'</span>
+<span class="kw">import type</span> { NextPageWithLayout } <span class="kw">from</span> <span class="str">'./_app'</span>
+
+<span class="kw">const</span> Page: NextPageWithLayout = () =&gt; <span class="tag">&lt;p&gt;</span>Dashboard<span class="tag">&lt;/p&gt;</span>
+
+Page.getLayout = (page) =&gt; <span class="tag">&lt;DashboardLayout&gt;</span>{page}<span class="tag">&lt;/DashboardLayout&gt;</span>
+
+<span class="kw">export default</span> Page</code></pre>
+
+      <div class="callout tip">
+        <div class="callout-label">Vì sao dùng getLayout?</div>
+        <p>Pattern này <strong>bảo toàn state</strong> giữa các page transitions (input values, scroll position...). React tree được maintain xuyên suốt, cho trải nghiệm SPA thật sự.</p>
+      </div>
+    </section>
+
+    <!-- 04. DYNAMIC ROUTES -->
+    <section class="chapter" id="dynamic-routes">
+      <div class="chapter-num">Chương 04</div>
+      <h2>Dynamic Routes</h2>
+      <p>Dynamic segments được bọc trong ngoặc vuông ở tên file. Giá trị được truyền qua <code>router.query</code> hoặc <code>context.params</code> (trong data fetching).</p>
+
+      <h3>Single dynamic segment</h3>
+      <pre data-lang="tsx"><code><span class="com">// pages/posts/[id].tsx</span>
+<span class="kw">import</span> { useRouter } <span class="kw">from</span> <span class="str">'next/router'</span>
+
+<span class="kw">export default function</span> <span class="fn">Post</span>() {
+  <span class="kw">const</span> router = <span class="fn">useRouter</span>()
+  <span class="kw">const</span> { id } = router.query
+  <span class="kw">return</span> <span class="tag">&lt;p&gt;</span>Post: {id}<span class="tag">&lt;/p&gt;</span>
+}</code></pre>
+
+      <h3>Catch-all segments</h3>
+      <pre data-lang="tsx"><code><span class="com">// pages/shop/[...slug].tsx → /shop/a/b/c</span>
+<span class="com">// router.query.slug = ['a', 'b', 'c']</span></code></pre>
+
+      <h3>Optional catch-all</h3>
+      <pre data-lang="tsx"><code><span class="com">// pages/shop/[[...slug]].tsx</span>
+<span class="com">// - /shop         → slug = undefined</span>
+<span class="com">// - /shop/a       → slug = ['a']</span>
+<span class="com">// - /shop/a/b/c   → slug = ['a', 'b', 'c']</span></code></pre>
+
+      <h3>Thứ tự ưu tiên route</h3>
+      <ol>
+        <li>Predefined routes (<code>pages/posts/create.js</code>)</li>
+        <li>Dynamic routes (<code>pages/posts/[id].js</code>)</li>
+        <li>Catch-all routes (<code>pages/posts/[...slug].js</code>)</li>
+      </ol>
+    </section>
+
+    <!-- 05. LINKING -->
+    <section class="chapter" id="linking">
+      <div class="chapter-num">Chương 05</div>
+      <h2>Linking <em>&amp;</em> Navigating</h2>
+      <p>Dùng <code>&lt;Link&gt;</code> từ <code>next/link</code> cho client-side transitions. Next.js tự prefetch các link trong viewport.</p>
+
+      <h3><code>&lt;Link&gt;</code> component</h3>
+      <pre data-lang="tsx"><code><span class="kw">import</span> Link <span class="kw">from</span> <span class="str">'next/link'</span>
+
+<span class="kw">export default function</span> <span class="fn">Home</span>() {
+  <span class="kw">return</span> (
+    <span class="tag">&lt;ul&gt;</span>
+      <span class="tag">&lt;li&gt;&lt;Link</span> <span class="prop">href</span>=<span class="str">"/"</span><span class="tag">&gt;</span>Home<span class="tag">&lt;/Link&gt;&lt;/li&gt;</span>
+      <span class="tag">&lt;li&gt;&lt;Link</span> <span class="prop">href</span>=<span class="str">"/about"</span><span class="tag">&gt;</span>About<span class="tag">&lt;/Link&gt;&lt;/li&gt;</span>
+      <span class="tag">&lt;li&gt;&lt;Link</span> <span class="prop">href</span>=<span class="str">"/blog/hello-world"</span><span class="tag">&gt;</span>Post<span class="tag">&lt;/Link&gt;&lt;/li&gt;</span>
+    <span class="tag">&lt;/ul&gt;</span>
+  )
+}</code></pre>
+
+      <h3>Programmatic navigation với <code>useRouter</code></h3>
+      <pre data-lang="tsx"><code><span class="kw">import</span> { useRouter } <span class="kw">from</span> <span class="str">'next/router'</span>
+
+<span class="kw">export default function</span> <span class="fn">ReadMore</span>() {
+  <span class="kw">const</span> router = <span class="fn">useRouter</span>()
+  <span class="kw">return</span> (
+    <span class="tag">&lt;button</span> <span class="prop">onClick</span>={() =&gt; router.<span class="fn">push</span>(<span class="str">'/about'</span>)}<span class="tag">&gt;</span>
+      Read more
+    <span class="tag">&lt;/button&gt;</span>
+  )
+}</code></pre>
+
+      <h3>Dynamic href</h3>
+      <pre data-lang="tsx"><code><span class="tag">&lt;Link</span> <span class="prop">href</span>={<span class="str">`/posts/${post.slug}`</span>}<span class="tag">&gt;</span>{post.title}<span class="tag">&lt;/Link&gt;</span></code></pre>
+
+      <h3>Shallow routing</h3>
+      <p>Thay đổi URL mà <strong>không</strong> chạy lại data fetching (<code>getStaticProps</code>/<code>getServerSideProps</code>):</p>
+      <pre data-lang="tsx"><code>router.<span class="fn">push</span>(<span class="str">'/?counter=10'</span>, <span class="kw">undefined</span>, { shallow: <span class="kw">true</span> })</code></pre>
+      <p>Shallow routing chỉ hoạt động khi URL thay đổi trong <strong>cùng 1 page</strong>.</p>
+
+      <div class="callout compare">
+        <div class="callout-label">So sánh với App Router</div>
+        <p>App Router import <code>useRouter</code> từ <code>next/navigation</code>. Pages Router import từ <code>next/router</code> — API khác nhau, không thể swap trực tiếp.</p>
+      </div>
+    </section>
+
+    <!-- 06. CUSTOM APP -->
+    <section class="chapter" id="custom-app">
+      <div class="chapter-num">Chương 06</div>
+      <h2>Custom App (<code>_app</code>)</h2>
+      <p>File <code>pages/_app.tsx</code> override App component mặc định của Next.js — nơi bạn có thể:</p>
+      <ul>
+        <li>Áp layout chung cho mọi page</li>
+        <li>Inject global CSS (đây là <strong>nơi duy nhất</strong> được phép import global stylesheet)</li>
+        <li>Khởi tạo context providers (Redux, Theme, Auth...)</li>
+        <li>Thêm dữ liệu/hàm chung cho tất cả page</li>
+        <li>Thêm error handling chung</li>
+      </ul>
+
+      <h3>Ví dụ đầy đủ</h3>
+      <pre data-lang="tsx"><code><span class="com">// pages/_app.tsx</span>
+<span class="kw">import type</span> { AppProps } <span class="kw">from</span> <span class="str">'next/app'</span>
+<span class="kw">import</span> <span class="str">'../styles/globals.css'</span>  <span class="com">// Global CSS chỉ được import ở đây</span>
+
+<span class="kw">export default function</span> <span class="fn">MyApp</span>({ Component, pageProps }: AppProps) {
+  <span class="kw">return</span> <span class="tag">&lt;Component</span> {...pageProps} <span class="tag">/&gt;</span>
+}</code></pre>
+
+      <div class="callout warn">
+        <div class="callout-label">Giới hạn</div>
+        <p>File <code>_app.tsx</code> <strong>không hỗ trợ</strong> <code>getStaticProps</code> hoặc <code>getServerSideProps</code>. Nếu cần data chung, dùng <code>getInitialProps</code> (opt-out static optimization) hoặc fetch client-side.</p>
+      </div>
+    </section>
+
+    <!-- 07. CUSTOM DOCUMENT -->
+    <section class="chapter" id="custom-document">
+      <div class="chapter-num">Chương 07</div>
+      <h2>Custom Document (<code>_document</code>)</h2>
+      <p>File <code>pages/_document.tsx</code> override thẻ <code>&lt;html&gt;</code> và <code>&lt;body&gt;</code>. Chỉ render <strong>1 lần trên server</strong> — không chạy trên client, không re-render.</p>
+
+      <h3>Use case chính</h3>
+      <ul>
+        <li>Thêm attribute vào thẻ <code>&lt;html&gt;</code> (vd: <code>lang</code>, <code>dir</code>)</li>
+        <li>Thêm font link, custom script tag trước khi app hydrate</li>
+        <li>Support CSS-in-JS libraries với SSR (styled-components, emotion cũ)</li>
+      </ul>
+
+      <pre data-lang="tsx"><code><span class="com">// pages/_document.tsx</span>
+<span class="kw">import</span> { Html, Head, Main, NextScript } <span class="kw">from</span> <span class="str">'next/document'</span>
+
+<span class="kw">export default function</span> <span class="fn">Document</span>() {
+  <span class="kw">return</span> (
+    <span class="tag">&lt;Html</span> <span class="prop">lang</span>=<span class="str">"vi"</span><span class="tag">&gt;</span>
+      <span class="tag">&lt;Head&gt;</span>
+        <span class="tag">&lt;link</span> <span class="prop">rel</span>=<span class="str">"preconnect"</span> <span class="prop">href</span>=<span class="str">"https://fonts.googleapis.com"</span> <span class="tag">/&gt;</span>
+      <span class="tag">&lt;/Head&gt;</span>
+      <span class="tag">&lt;body&gt;</span>
+        <span class="tag">&lt;Main</span> <span class="tag">/&gt;</span>         <span class="com">{/* Nơi React render app */}</span>
+        <span class="tag">&lt;NextScript</span> <span class="tag">/&gt;</span>   <span class="com">{/* Script của Next.js */}</span>
+      <span class="tag">&lt;/body&gt;</span>
+    <span class="tag">&lt;/Html&gt;</span>
+  )
+}</code></pre>
+
+      <div class="callout warn">
+        <div class="callout-label">Đừng nhầm</div>
+        <p>React components ngoài <code>&lt;Main /&gt;</code> <strong>không được khởi tạo trên browser</strong>. Đừng đặt application logic ở đây — nếu cần component dùng chung thì đặt trong <code>_app.tsx</code> hoặc Layout component.</p>
+      </div>
+    </section>
+
+    <!-- 08. RENDERING STRATEGIES -->
+    <section class="chapter" id="rendering">
+      <div class="chapter-num">Chương 08</div>
+      <h2>Rendering Strategies</h2>
+      <p>Pages Router có <strong>4 chiến lược render</strong>. Mỗi page có thể chọn 1 chiến lược độc lập:</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Chiến lược</th><th>Khi nào chạy</th><th>Cách opt-in</th></tr></thead>
+          <tbody>
+            <tr><td><strong>SSG</strong> (Static Site Generation)</td><td>Build time</td><td>Export <code>getStaticProps</code></td></tr>
+            <tr><td><strong>ISR</strong> (Incremental Static Regeneration)</td><td>Build time + revalidate runtime</td><td><code>getStaticProps</code> + <code>revalidate</code></td></tr>
+            <tr><td><strong>SSR</strong> (Server-Side Rendering)</td><td>Mỗi request</td><td>Export <code>getServerSideProps</code></td></tr>
+            <tr><td><strong>CSR</strong> (Client-Side Rendering)</td><td>Trình duyệt</td><td>Không export gì, fetch trong <code>useEffect</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Automatic Static Optimization</h3>
+      <p>Nếu page <strong>không export</strong> <code>getServerSideProps</code> hay <code>getStaticProps</code>, Next.js sẽ <strong>tự động prerender thành HTML tĩnh</strong> ở build time. Đây là mặc định — nhanh nhất và rẻ nhất.</p>
+    </section>
+
+    <!-- 09. GET STATIC PROPS -->
+    <section class="chapter" id="get-static-props">
+      <div class="chapter-num">Chương 09</div>
+      <h2>getStaticProps (SSG)</h2>
+      <p>Chạy ở <strong>build time</strong> trên server. Prerender HTML với data đã fetch sẵn. Phù hợp cho blog, tài liệu, product pages — data không đổi thường xuyên.</p>
+
+      <pre data-lang="tsx"><code><span class="com">// pages/blog/index.tsx</span>
+<span class="kw">import type</span> { InferGetStaticPropsType, GetStaticProps } <span class="kw">from</span> <span class="str">'next'</span>
+
+<span class="kw">type</span> Post = { id: <span class="kw">string</span>; title: <span class="kw">string</span> }
+
+<span class="kw">export const</span> getStaticProps = (<span class="kw">async</span> () =&gt; {
+  <span class="kw">const</span> res = <span class="kw">await</span> <span class="fn">fetch</span>(<span class="str">'https://api.example.com/posts'</span>)
+  <span class="kw">const</span> posts: Post[] = <span class="kw">await</span> res.<span class="fn">json</span>()
+  <span class="kw">return</span> { props: { posts } }
+}) <span class="kw">satisfies</span> GetStaticProps&lt;{ posts: Post[] }&gt;
+
+<span class="kw">export default function</span> <span class="fn">Blog</span>({
+  posts,
+}: InferGetStaticPropsType&lt;<span class="kw">typeof</span> getStaticProps&gt;) {
+  <span class="kw">return</span> (
+    <span class="tag">&lt;ul&gt;</span>
+      {posts.<span class="fn">map</span>((p) =&gt; <span class="tag">&lt;li</span> <span class="prop">key</span>={p.id}<span class="tag">&gt;</span>{p.title}<span class="tag">&lt;/li&gt;</span>)}
+    <span class="tag">&lt;/ul&gt;</span>
+  )
+}</code></pre>
+
+      <h3>Incremental Static Regeneration (ISR)</h3>
+      <p>Thêm <code>revalidate</code> để Next.js regenerate page sau N giây:</p>
+      <pre data-lang="tsx"><code><span class="kw">export async function</span> <span class="fn">getStaticProps</span>() {
+  <span class="kw">const</span> posts = <span class="kw">await</span> <span class="fn">fetch</span>(...).<span class="kw">then</span>((r) =&gt; r.<span class="fn">json</span>())
+  <span class="kw">return</span> {
+    props: { posts },
+    revalidate: <span class="num">60</span>, <span class="com">// Tái tạo tối đa mỗi 60s khi có request</span>
+  }
+}</code></pre>
+
+      <div class="callout">
+        <div class="callout-label">Đặc điểm</div>
+        <p><code>getStaticProps</code> <strong>không có access</strong> vào request (query params, headers). Nếu cần request-time data, dùng <code>getServerSideProps</code>. Trong development (<code>next dev</code>), <code>getStaticProps</code> được gọi mỗi request để dễ debug.</p>
+      </div>
+
+      <h3>Client-side navigation</h3>
+      <p>Khi page được prerender, Next.js tạo thêm file JSON. Khi navigate bằng <code>&lt;Link&gt;</code>, client chỉ fetch JSON (không chạy lại <code>getStaticProps</code>). Điều này làm navigation cực nhanh.</p>
+    </section>
+
+    <!-- 10. GET STATIC PATHS -->
+    <section class="chapter" id="get-static-paths">
+      <div class="chapter-num">Chương 10</div>
+      <h2>getStaticPaths</h2>
+      <p>Dùng với <strong>dynamic routes</strong> (<code>[id].tsx</code>) để Next.js biết cần prerender những path nào ở build time.</p>
+
+      <pre data-lang="tsx"><code><span class="com">// pages/posts/[id].tsx</span>
+<span class="kw">import type</span> { GetStaticPaths, GetStaticProps } <span class="kw">from</span> <span class="str">'next'</span>
+
+<span class="kw">export const</span> getStaticPaths: GetStaticPaths = <span class="kw">async</span> () =&gt; {
+  <span class="kw">const</span> posts = <span class="kw">await</span> <span class="fn">fetch</span>(<span class="str">'/api/posts'</span>).<span class="kw">then</span>((r) =&gt; r.<span class="fn">json</span>())
+  <span class="kw">return</span> {
+    paths: posts.<span class="fn">map</span>((p: <span class="kw">any</span>) =&gt; ({ params: { id: p.id } })),
+    fallback: <span class="kw">false</span>, <span class="com">// path không khớp → 404</span>
+  }
+}
+
+<span class="kw">export const</span> getStaticProps: GetStaticProps = <span class="kw">async</span> ({ params }) =&gt; {
+  <span class="kw">const</span> post = <span class="kw">await</span> <span class="fn">fetch</span>(<span class="str">`/api/posts/</span>${params?.id}<span class="str">`</span>).<span class="kw">then</span>((r) =&gt; r.<span class="fn">json</span>())
+  <span class="kw">return</span> { props: { post } }
+}
+
+<span class="kw">export default function</span> <span class="fn">Post</span>({ post }) {
+  <span class="kw">return</span> <span class="tag">&lt;article&gt;&lt;h1&gt;</span>{post.title}<span class="tag">&lt;/h1&gt;&lt;/article&gt;</span>
+}</code></pre>
+
+      <h3>Chế độ <code>fallback</code></h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Giá trị</th><th>Hành vi</th></tr></thead>
+          <tbody>
+            <tr><td><code>false</code></td><td>Path không trong <code>paths</code> → 404</td></tr>
+            <tr><td><code>true</code></td><td>Path mới sẽ được render on-demand lần đầu, hiển thị fallback UI trong khi render</td></tr>
+            <tr><td><code>'blocking'</code></td><td>SSR lần đầu (không fallback UI), sau đó cache như static</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="callout tip">
+        <div class="callout-label">Fallback UI</div>
+        <p>Khi <code>fallback: true</code>, dùng <code>router.isFallback</code> để hiển thị loading state:</p>
+      </div>
+      <pre data-lang="tsx"><code><span class="kw">const</span> router = <span class="fn">useRouter</span>()
+<span class="kw">if</span> (router.isFallback) <span class="kw">return</span> <span class="tag">&lt;div&gt;</span>Loading...<span class="tag">&lt;/div&gt;</span></code></pre>
+    </section>
+
+    <!-- 11. GET SERVER SIDE PROPS -->
+    <section class="chapter" id="get-server-side-props">
+      <div class="chapter-num">Chương 11</div>
+      <h2>getServerSideProps (SSR)</h2>
+      <p>Chạy <strong>mỗi request</strong> trên server. Phù hợp khi cần data tươi tuyệt đối hoặc phụ thuộc vào request (cookies, headers, query params).</p>
+
+      <pre data-lang="tsx"><code><span class="kw">import type</span> { InferGetServerSidePropsType, GetServerSideProps } <span class="kw">from</span> <span class="str">'next'</span>
+
+<span class="kw">type</span> Repo = { name: <span class="kw">string</span>; stargazers_count: <span class="kw">number</span> }
+
+<span class="kw">export const</span> getServerSideProps = (<span class="kw">async</span> () =&gt; {
+  <span class="kw">const</span> res = <span class="kw">await</span> <span class="fn">fetch</span>(<span class="str">'https://api.github.com/repos/vercel/next.js'</span>)
+  <span class="kw">const</span> repo: Repo = <span class="kw">await</span> res.<span class="fn">json</span>()
+  <span class="kw">return</span> { props: { repo } }
+}) <span class="kw">satisfies</span> GetServerSideProps&lt;{ repo: Repo }&gt;
+
+<span class="kw">export default function</span> <span class="fn">Page</span>({
+  repo,
+}: InferGetServerSidePropsType&lt;<span class="kw">typeof</span> getServerSideProps&gt;) {
+  <span class="kw">return</span> <span class="tag">&lt;p&gt;</span>Stars: {repo.stargazers_count}<span class="tag">&lt;/p&gt;</span>
+}</code></pre>
+
+      <h3>Các kết quả trả về</h3>
+      <ul>
+        <li><code>{ props }</code> — Pass data xuống page</li>
+        <li><code>{ notFound: true }</code> — Trả về trang 404</li>
+        <li><code>{ redirect: { destination, permanent } }</code> — Redirect</li>
+      </ul>
+
+      <pre data-lang="tsx"><code><span class="kw">export async function</span> <span class="fn">getServerSideProps</span>(context) {
+  <span class="kw">const</span> data = <span class="kw">await</span> <span class="fn">fetch</span>(...).<span class="kw">then</span>((r) =&gt; r.<span class="fn">json</span>())
+  <span class="kw">if</span> (!data) <span class="kw">return</span> { notFound: <span class="kw">true</span> }
+  <span class="kw">if</span> (!data.user) <span class="kw">return</span> {
+    redirect: { destination: <span class="str">'/login'</span>, permanent: <span class="kw">false</span> }
+  }
+  <span class="kw">return</span> { props: { data } }
+}</code></pre>
+
+      <h3>Cache-Control header</h3>
+      <p>Có thể thêm cache header thủ công để CDN cache response:</p>
+      <pre data-lang="tsx"><code><span class="kw">export async function</span> <span class="fn">getServerSideProps</span>({ req, res }) {
+  res.<span class="fn">setHeader</span>(
+    <span class="str">'Cache-Control'</span>,
+    <span class="str">'public, s-maxage=10, stale-while-revalidate=59'</span>
+  )
+  <span class="kw">return</span> { props: {} }
+}</code></pre>
+
+      <div class="callout warn">
+        <div class="callout-label">Khi nào KHÔNG dùng</div>
+        <p>Nếu không cần data tại request time, dùng <code>getStaticProps</code> (có thể kèm ISR) — hiệu năng tốt hơn nhiều vì được cache.</p>
+      </div>
+    </section>
+
+    <!-- 12. CLIENT FETCHING -->
+    <section class="chapter" id="client-fetching">
+      <div class="chapter-num">Chương 12</div>
+      <h2>Client-side Fetching</h2>
+      <p>Khi data không cần SEO hoặc phụ thuộc vào user (dashboard, user profile...), fetch ở client bằng <code>useEffect</code> hoặc tốt hơn là <strong>SWR</strong> / TanStack Query.</p>
+
+      <h3>Với SWR (từ team Next.js)</h3>
+      <pre data-lang="tsx"><code><span class="kw">import</span> useSWR <span class="kw">from</span> <span class="str">'swr'</span>
+
+<span class="kw">const</span> fetcher = (url) =&gt; <span class="fn">fetch</span>(url).<span class="kw">then</span>((r) =&gt; r.<span class="fn">json</span>())
+
+<span class="kw">export default function</span> <span class="fn">Profile</span>() {
+  <span class="kw">const</span> { data, error, isLoading } = <span class="fn">useSWR</span>(<span class="str">'/api/user'</span>, fetcher)
+
+  <span class="kw">if</span> (error) <span class="kw">return</span> <span class="tag">&lt;div&gt;</span>Failed to load<span class="tag">&lt;/div&gt;</span>
+  <span class="kw">if</span> (isLoading) <span class="kw">return</span> <span class="tag">&lt;div&gt;</span>Loading...<span class="tag">&lt;/div&gt;</span>
+  <span class="kw">return</span> <span class="tag">&lt;div&gt;</span>Hello, {data.name}!<span class="tag">&lt;/div&gt;</span>
+}</code></pre>
+
+      <p>SWR tự xử lý caching, revalidation khi focus lại tab, refetch theo interval, deduplication...</p>
+
+      <h3>Với <code>useEffect</code> thuần</h3>
+      <pre data-lang="tsx"><code><span class="kw">import</span> { useState, useEffect } <span class="kw">from</span> <span class="str">'react'</span>
+
+<span class="kw">export default function</span> <span class="fn">Profile</span>() {
+  <span class="kw">const</span> [data, setData] = <span class="fn">useState</span>(<span class="kw">null</span>)
+  <span class="fn">useEffect</span>(() =&gt; {
+    <span class="fn">fetch</span>(<span class="str">'/api/user'</span>).<span class="kw">then</span>((r) =&gt; r.<span class="fn">json</span>()).<span class="kw">then</span>(setData)
+  }, [])
+  <span class="kw">if</span> (!data) <span class="kw">return</span> <span class="tag">&lt;p&gt;</span>Loading<span class="tag">&lt;/p&gt;</span>
+  <span class="kw">return</span> <span class="tag">&lt;p&gt;</span>Hello, {data.name}!<span class="tag">&lt;/p&gt;</span>
+}</code></pre>
+    </section>
+
+    <!-- 13. API ROUTES -->
+    <section class="chapter" id="api-routes">
+      <div class="chapter-num">Chương 13</div>
+      <h2>API Routes</h2>
+      <p>Bất kỳ file nào trong <code>pages/api/*</code> sẽ được map thành API endpoint tại <code>/api/*</code>. Server-side only — không tính vào client bundle.</p>
+
+      <h3>Basic API route</h3>
+      <pre data-lang="ts"><code><span class="com">// pages/api/hello.ts</span>
+<span class="kw">import type</span> { NextApiRequest, NextApiResponse } <span class="kw">from</span> <span class="str">'next'</span>
+
+<span class="kw">type</span> ResponseData = { message: <span class="kw">string</span> }
+
+<span class="kw">export default function</span> <span class="fn">handler</span>(
+  req: NextApiRequest,
+  res: NextApiResponse&lt;ResponseData&gt;
+) {
+  res.<span class="fn">status</span>(<span class="num">200</span>).<span class="fn">json</span>({ message: <span class="str">'Hello from Next.js!'</span> })
+}</code></pre>
+
+      <h3>Xử lý nhiều HTTP methods</h3>
+      <pre data-lang="ts"><code><span class="kw">export default function</span> <span class="fn">handler</span>(req: NextApiRequest, res: NextApiResponse) {
+  <span class="kw">if</span> (req.method === <span class="str">'POST'</span>) {
+    <span class="com">// Xử lý POST</span>
+    <span class="kw">return</span> res.<span class="fn">status</span>(<span class="num">201</span>).<span class="fn">json</span>({ ok: <span class="kw">true</span> })
+  }
+  <span class="kw">if</span> (req.method === <span class="str">'GET'</span>) {
+    <span class="kw">return</span> res.<span class="fn">status</span>(<span class="num">200</span>).<span class="fn">json</span>({ data: [] })
+  }
+  res.<span class="fn">setHeader</span>(<span class="str">'Allow'</span>, [<span class="str">'GET'</span>, <span class="str">'POST'</span>])
+  res.<span class="fn">status</span>(<span class="num">405</span>).<span class="fn">end</span>(<span class="str">`Method </span>${req.method}<span class="str"> Not Allowed`</span>)
+}</code></pre>
+
+      <h3>Dynamic API routes</h3>
+      <pre data-lang="ts"><code><span class="com">// pages/api/posts/[id].ts</span>
+<span class="kw">export default function</span> <span class="fn">handler</span>(req, res) {
+  <span class="kw">const</span> { id } = req.query
+  res.<span class="fn">json</span>({ post: id })
+}</code></pre>
+
+      <h3>Built-in request helpers</h3>
+      <ul>
+        <li><code>req.cookies</code> — Object chứa cookies</li>
+        <li><code>req.query</code> — Object chứa query string</li>
+        <li><code>req.body</code> — Body đã parse theo content-type (hoặc <code>null</code>)</li>
+      </ul>
+
+      <div class="callout warn">
+        <div class="callout-label">Giới hạn</div>
+        <p>API Routes <strong>không dùng được với static export</strong> (<code>output: 'export'</code>). CORS mặc định là same-origin — cần tự wrap với CORS helpers nếu muốn cross-origin.</p>
+      </div>
+
+      <div class="callout compare">
+        <div class="callout-label">Khuyến nghị từ team Next.js</div>
+        <p>Nếu dự án đang migrate sang App Router, thay thế API Routes bằng <strong>Route Handlers</strong> (<code>app/api/route.ts</code>) — API hiện đại hơn, dựa trên Web Request/Response chuẩn.</p>
+      </div>
+    </section>
+
+    <!-- 14. CUSTOM ERRORS -->
+    <section class="chapter" id="custom-errors">
+      <div class="chapter-num">Chương 14</div>
+      <h2>Custom Errors</h2>
+
+      <h3>Custom 404 — <code>pages/404.tsx</code></h3>
+      <p>Static — được prerender ở build time:</p>
+      <pre data-lang="tsx"><code><span class="com">// pages/404.tsx</span>
+<span class="kw">export default function</span> <span class="fn">Custom404</span>() {
+  <span class="kw">return</span> <span class="tag">&lt;h1&gt;</span>404 - Trang không tồn tại<span class="tag">&lt;/h1&gt;</span>
+}</code></pre>
+
+      <h3>Custom 500 — <code>pages/500.tsx</code></h3>
+      <pre data-lang="tsx"><code><span class="com">// pages/500.tsx</span>
+<span class="kw">export default function</span> <span class="fn">Custom500</span>() {
+  <span class="kw">return</span> <span class="tag">&lt;h1&gt;</span>500 - Lỗi server<span class="tag">&lt;/h1&gt;</span>
+}</code></pre>
+
+      <h3>Custom <code>_error.tsx</code> — fallback cho mọi lỗi khác</h3>
+      <pre data-lang="tsx"><code><span class="com">// pages/_error.tsx</span>
+<span class="kw">function</span> <span class="fn">Error</span>({ statusCode }) {
+  <span class="kw">return</span> (
+    <span class="tag">&lt;p&gt;</span>
+      {statusCode
+        ? <span class="str">`Lỗi </span>${statusCode}<span class="str"> trên server`</span>
+        : <span class="str">'Lỗi phía client'</span>}
+    <span class="tag">&lt;/p&gt;</span>
+  )
+}
+
+Error.getInitialProps = ({ res, err }) =&gt; {
+  <span class="kw">const</span> statusCode = res ? res.statusCode : err ? err.statusCode : <span class="num">404</span>
+  <span class="kw">return</span> { statusCode }
+}
+
+<span class="kw">export default</span> Error</code></pre>
+
+      <h3>React Error Boundaries</h3>
+      <p>Pages Router <strong>không có</strong> file <code>error.js</code> đặc biệt như App Router. Để bắt lỗi React trên client, tự tạo Error Boundary class component và wrap trong <code>_app.tsx</code>.</p>
+    </section>
+
+    <!-- 15. IMAGES & FONTS -->
+    <section class="chapter" id="images-fonts">
+      <div class="chapter-num">Chương 15</div>
+      <h2>Images <em>&amp;</em> Fonts</h2>
+      <p>Pages Router dùng chung <code>next/image</code> và <code>next/font</code> với App Router — API hầu hết giống nhau.</p>
+
+      <h3><code>next/image</code></h3>
+      <pre data-lang="tsx"><code><span class="kw">import</span> Image <span class="kw">from</span> <span class="str">'next/image'</span>
+
+<span class="kw">export default function</span> <span class="fn">Page</span>() {
+  <span class="kw">return</span> (
+    <span class="tag">&lt;Image</span>
+      <span class="prop">src</span>=<span class="str">"/profile.png"</span>
+      <span class="prop">alt</span>=<span class="str">"Profile"</span>
+      <span class="prop">width</span>={<span class="num">500</span>}
+      <span class="prop">height</span>={<span class="num">500</span>}
+    <span class="tag">/&gt;</span>
+  )
+}</code></pre>
+
+      <h3><code>next/font/google</code> trong <code>_app.tsx</code></h3>
+      <p>Vì Pages Router không có root layout, áp font toàn cục trong <code>_app.tsx</code>:</p>
+      <pre data-lang="tsx"><code><span class="com">// pages/_app.tsx</span>
+<span class="kw">import</span> { Geist } <span class="kw">from</span> <span class="str">'next/font/google'</span>
+<span class="kw">import type</span> { AppProps } <span class="kw">from</span> <span class="str">'next/app'</span>
+
+<span class="kw">const</span> geist = <span class="fn">Geist</span>({ subsets: [<span class="str">'latin'</span>] })
+
+<span class="kw">export default function</span> <span class="fn">MyApp</span>({ Component, pageProps }: AppProps) {
+  <span class="kw">return</span> (
+    <span class="tag">&lt;main</span> <span class="prop">className</span>={geist.className}<span class="tag">&gt;</span>
+      <span class="tag">&lt;Component</span> {...pageProps} <span class="tag">/&gt;</span>
+    <span class="tag">&lt;/main&gt;</span>
+  )
+}</code></pre>
+
+      <h3>Local fonts</h3>
+      <pre data-lang="tsx"><code><span class="kw">import</span> localFont <span class="kw">from</span> <span class="str">'next/font/local'</span>
+
+<span class="kw">const</span> myFont = <span class="fn">localFont</span>({
+  src: <span class="str">'./my-font.woff2'</span>,
+})</code></pre>
+
+      <div class="callout compare">
+        <div class="callout-label">Khác với App Router</div>
+        <p>Pages Router dùng <code>&lt;Head&gt;</code> từ <code>next/head</code> để inject tag vào <code>&lt;head&gt;</code>. Không có Metadata API — SEO phải tự viết <code>&lt;title&gt;</code> và <code>&lt;meta&gt;</code> tags.</p>
+      </div>
+
+      <pre data-lang="tsx"><code><span class="kw">import</span> Head <span class="kw">from</span> <span class="str">'next/head'</span>
+
+<span class="kw">export default function</span> <span class="fn">Page</span>() {
+  <span class="kw">return</span> (
+    <span class="tag">&lt;&gt;</span>
+      <span class="tag">&lt;Head&gt;</span>
+        <span class="tag">&lt;title&gt;</span>Trang chủ<span class="tag">&lt;/title&gt;</span>
+        <span class="tag">&lt;meta</span> <span class="prop">name</span>=<span class="str">"description"</span> <span class="prop">content</span>=<span class="str">"Mô tả trang"</span> <span class="tag">/&gt;</span>
+      <span class="tag">&lt;/Head&gt;</span>
+      <span class="tag">&lt;main&gt;</span>...<span class="tag">&lt;/main&gt;</span>
+    <span class="tag">&lt;/&gt;</span>
+  )
+}</code></pre>
+    </section>
+
+    <!-- 16. CSS -->
+    <section class="chapter" id="css">
+      <div class="chapter-num">Chương 16</div>
+      <h2>CSS</h2>
+      <p>Pages Router hỗ trợ CSS Modules, Global CSS, Tailwind CSS, Sass, và CSS-in-JS — giống App Router, nhưng <strong>có 1 điểm khác quan trọng</strong>.</p>
+
+      <h3>Global CSS</h3>
+      <div class="callout warn">
+        <div class="callout-label">Hạn chế</div>
+        <p>Global CSS <strong>chỉ được import trong <code>pages/_app.tsx</code></strong>. Import ở bất kỳ file nào khác sẽ bị Next.js báo lỗi. Đây là khác biệt lớn với App Router — nơi global CSS có thể import ở bất kỳ layout/page nào.</p>
+      </div>
+
+      <pre data-lang="tsx"><code><span class="com">// pages/_app.tsx — CHỈ Ở ĐÂY</span>
+<span class="kw">import</span> <span class="str">'../styles/globals.css'</span>
+
+<span class="kw">export default function</span> <span class="fn">MyApp</span>({ Component, pageProps }) {
+  <span class="kw">return</span> <span class="tag">&lt;Component</span> {...pageProps} <span class="tag">/&gt;</span>
+}</code></pre>
+
+      <h3>CSS Modules</h3>
+      <p>Có thể dùng ở bất kỳ component nào:</p>
+      <pre data-lang="tsx"><code><span class="com">// components/Button.module.css</span>
+<span class="com">// .button { background: red; }</span>
+
+<span class="kw">import</span> styles <span class="kw">from</span> <span class="str">'./Button.module.css'</span>
+
+<span class="kw">export default function</span> <span class="fn">Button</span>() {
+  <span class="kw">return</span> <span class="tag">&lt;button</span> <span class="prop">className</span>={styles.button}<span class="tag">&gt;</span>Click<span class="tag">&lt;/button&gt;</span>
+}</code></pre>
+
+      <h3>Tailwind CSS</h3>
+      <p>Config <code>content</code> trong <code>tailwind.config.js</code> để Tailwind scan file trong <code>pages/</code> và <code>components/</code>:</p>
+      <pre data-lang="js"><code><span class="com">// tailwind.config.js</span>
+module.exports = {
+  content: [
+    <span class="str">'./pages/**/*.{js,ts,jsx,tsx}'</span>,
+    <span class="str">'./components/**/*.{js,ts,jsx,tsx}'</span>,
+  ],
+  <span class="com">// ...</span>
+}</code></pre>
+    </section>
+
+    <!-- 17. DEPLOYING -->
+    <section class="chapter" id="deploying">
+      <div class="chapter-num">Chương 17</div>
+      <h2>Deploying</h2>
+      <p>Pages Router deploy giống App Router — Node.js server, Docker, static export, hoặc adapter.</p>
+
+      <h3>Node.js</h3>
+      <pre data-lang="bash"><code>npm run build
+npm run start  <span class="com"># Khởi chạy server production</span></code></pre>
+
+      <h3>Static export</h3>
+      <p>Pages Router có thể export hoàn toàn thành static HTML nếu không dùng SSR:</p>
+      <pre data-lang="js"><code><span class="com">// next.config.js</span>
+module.exports = {
+  output: <span class="str">'export'</span>,
+}</code></pre>
+
+      <div class="callout warn">
+        <div class="callout-label">Không hỗ trợ khi static export</div>
+        <p>API Routes, <code>getServerSideProps</code>, ISR, Image Optimization mặc định (cần custom loader), Middleware/Proxy. Tất cả phải chuyển sang client-side hoặc loại bỏ.</p>
+      </div>
+
+      <h3>Docker</h3>
+      <p>Giống App Router — dùng <code>output: 'standalone'</code> để tạo image tối thiểu:</p>
+      <pre data-lang="js"><code>module.exports = {
+  output: <span class="str">'standalone'</span>,
+}</code></pre>
+    </section>
+
+    <!-- 18. UPGRADING & MIGRATION -->
+    <section class="chapter" id="upgrading">
+      <div class="chapter-num">Chương 18</div>
+      <h2>Upgrading <em>&amp;</em> Migration</h2>
+
+      <h3>Nâng cấp Next.js</h3>
+      <pre data-lang="bash"><code><span class="com"># Dùng codemod tự động</span>
+npx @next/codemod@canary upgrade latest
+
+<span class="com"># Hoặc thủ công</span>
+npm i next@latest react@latest react-dom@latest</code></pre>
+
+      <h3>Breaking changes lớn với Pages Router</h3>
+      <ul>
+        <li><strong>Next.js 16:</strong> Turbopack thành default bundler cho cả <code>next dev</code> và <code>next build</code>. Middleware renamed → proxy. <code>next build</code> không tự chạy linter nữa.</li>
+        <li><strong>Next.js 15:</strong> <code>fetch</code> không cache mặc định. <code>NextRequest.geo</code> và <code>.ip</code> bị remove. <code>@next/font</code> → <code>next/font</code>.</li>
+        <li><strong>Next.js 13:</strong> <code>next/image</code> mới (breaking), <code>next/link</code> không còn cần thẻ <code>&lt;a&gt;</code> con.</li>
+      </ul>
+
+      <h3>Migration sang App Router</h3>
+      <p>Team Next.js cung cấp guide migrate tăng dần. Các điểm chính cần đổi:</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Pages Router</th><th>App Router</th></tr></thead>
+          <tbody>
+            <tr><td><code>pages/_app.js</code> + <code>pages/_document.js</code></td><td><code>app/layout.js</code> (root layout duy nhất)</td></tr>
+            <tr><td><code>getStaticProps</code></td><td><code>fetch</code> + <code>'use cache'</code> directive</td></tr>
+            <tr><td><code>getServerSideProps</code></td><td><code>fetch</code> với <code>cache: 'no-store'</code></td></tr>
+            <tr><td><code>getStaticPaths</code></td><td><code>generateStaticParams</code></td></tr>
+            <tr><td><code>pages/api/*</code></td><td><code>app/api/.../route.ts</code> (Route Handlers)</td></tr>
+            <tr><td><code>pages/404.js</code></td><td><code>app/not-found.js</code></td></tr>
+            <tr><td><code>pages/_error.js</code></td><td><code>app/error.js</code> + <code>app/global-error.js</code></td></tr>
+            <tr><td><code>next/router</code></td><td><code>next/navigation</code></td></tr>
+            <tr><td><code>next/head</code></td><td>Metadata API (<code>export const metadata</code>)</td></tr>
+            <tr><td>Client Components mặc định</td><td>Server Components mặc định</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="callout tip">
+        <div class="callout-label">Migrate tăng dần</div>
+        <p>App Router và Pages Router <strong>có thể cùng tồn tại</strong> trong cùng 1 dự án. Bạn có thể migrate từng page một — không cần rewrite toàn bộ. Route trùng tên giữa <code>app/</code> và <code>pages/</code> sẽ ưu tiên <code>app/</code>.</p>
+      </div>
+
+      <h3>Codemods hữu ích</h3>
+      <pre data-lang="bash"><code><span class="com"># Rename next/image → next/legacy/image (giữ behavior cũ)</span>
+npx @next/codemod next-image-to-legacy-image .
+
+<span class="com"># Remove &lt;a&gt; tags trong &lt;Link&gt; components</span>
+npx @next/codemod new-link .
+
+<span class="com"># Migrate @next/font → next/font</span>
+npx @next/codemod built-in-next-font .</code></pre>
+    </section>
+
+  </main>
+</div>
+
+<footer>
+  <div>
+    <div class="sig">Next.js Pages Router Documentation</div>
+    <div style="color: var(--text-dimmer); font-size: 12px; margin-top: 4px;">Tổng hợp tiếng Việt · Nguồn: <a href="https://nextjs.org/docs/pages" style="color: var(--text-dim);">nextjs.org/docs/pages</a></div>
+  </div>
+  <div style="font-family: var(--mono); font-size: 11px; color: var(--text-dimmer);">v16.x · Pages Router</div>
+</footer>
+
+<script>
+  const sidebar = document.getElementById('sidebar');
+  const navToggle = document.getElementById('navToggle');
+  const navBackdrop = document.getElementById('navBackdrop');
+  const sidebarClose = document.getElementById('sidebarClose');
+
+  function openNav() {
+    sidebar.classList.add('open');
+    navBackdrop.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeNav() {
+    sidebar.classList.remove('open');
+    navBackdrop.classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  navToggle.addEventListener('click', openNav);
+  navBackdrop.addEventListener('click', closeNav);
+  sidebarClose.addEventListener('click', closeNav);
+
+  document.querySelectorAll('.sidebar a').forEach(link => {
+    link.addEventListener('click', () => {
+      if (window.innerWidth <= 900) closeNav();
+    });
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && sidebar.classList.contains('open')) closeNav();
+  });
+
+  const sections = document.querySelectorAll('section.chapter');
+  const navLinks = document.querySelectorAll('.sidebar a');
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const id = entry.target.id;
+        navLinks.forEach(link => {
+          link.classList.toggle('active', link.getAttribute('href') === '#' + id);
+        });
+      }
+    });
+  }, { rootMargin: '-40% 0px -50% 0px' });
+  sections.forEach(s => observer.observe(s));
+</script>
+
+</body>
+</html>
